@@ -1,0 +1,25 @@
+{%extends 'home_page.html'%}
+{%block content%}
+<div class="list-body">
+    <div class="services" style="
+        display: flex;
+        justify-content: center;
+        ">
+        <div class="custom-form-layout">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="formGroupExampleInput" class="form-label">Example label</label>
+                    <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input placeholder">
+                </div>
+                <div class="mb-3">
+                    <label for="formGroupExampleInput2" class="form-label">Another label</label>
+                    <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Another input placeholder">
+                </div>
+                <div>
+                <button type="button" class="btn btn-light" style="float:right;">Light</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{%endblock%}

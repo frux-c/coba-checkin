@@ -1,0 +1,6 @@
+coba/__pycache__/**
+services/__pycache__/**
+coba/migrations/__pycache__/**
+services/migrations/__pycache__/**
+coba/media/**
+coba/plots/**

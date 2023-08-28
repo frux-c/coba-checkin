@@ -1,0 +1,180 @@
+{%load static%}
+<!DOCTYPE html>
+    <!-- Font Awesome -->
+    <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+    rel="stylesheet"
+    />
+    <!-- Google Fonts -->
+    <link
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    rel="stylesheet"
+    />
+    <!-- MDB -->
+    <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.css"
+    rel="stylesheet"
+    />
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">    
+    <link
+    rel="stylesheet"
+    href="{% static 'css/main.css' %}"
+    />
+<html>
+	<body style=" background: url({%static 'assets/utepbackground.jpg' %}) no-repeat; background-size: cover;">
+        <section class="vh-100">
+            <div class="container py-5 h-100">
+              <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                  <div class="card bg-dark text-white" style="border-radius: 1rem;">
+                    <div id="full_box" class="card-body p-5 text-center">
+          
+                      <div class="mb-md-5 mt-md-4">
+          
+                        <h2 class="fw-bold mb-2 text-uppercase">Student Check-in</h2>
+                        <p class="text-white-50 mb-5">For UTEP Employee use only</p>
+
+                        <form method="post" action="{% url 'CheckIn'%}">
+                            {% csrf_token %}
+                        <div class="floating-label">  
+                            <select id="student" name="student" class="floating-select mySelect" onclick="this.setAttribute('value', this.value); checkStudent();" value="">
+                              <option value=""></option>
+                              {% for student in  students %}
+                                <option value="{{student}}">{{student}}</option>
+                              {% endfor %}
+                            </select>
+                            <label>Student Employee</label>
+                      </div>
+          
+                        <div class="form-outline form-white mb-4">
+                            <input id="id_number" name="id_number" class="form-control form-control-lg" maxlength="8"/>
+                            <label class="form-label" for="id_number">ID Number</label>
+                        </div>
+                        
+
+                        <div class="form-outline form-white mb-4" id="time_in_div" style="display:none;">
+                            <input type="time" id="time_in" name="time_in" class="form-control form-control-lg"/>
+                            <label class="form-label" for="time_in">Time In</label>
+                        </div>
+
+                        <div class="form-outline form-white mb-4" id="time_out_div" style="display:none;">
+                            <input type="time" id="time_out" name="time_out" class="form-control form-control-lg"/>
+                            <label class="form-label" for="time_out">Time Out</label>
+                        </div>
+                        {% comment %} <div class="form-outline form-white mb-4">
+                          <input type="time" id="timin" name="time_out" class="form-control form-control-lg"/>
+                          <label class="form-label" for="time_out">Time Out</label>
+                      </div> {% endcomment %}
+                        <button id="formsubmit" class="btn btn-outline-light btn-lg px-5" type="submit">Submit</button>
+                      </div>
+                    </form>
+                    <h6 id="student_header" class="fw-bold mb-2 text-uppercase">Available Student(s)</h6>
+                    <ul id="student_list" style="list-style:none; padding-left: 0pt;">
+                    </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+      </body>
+      <!-- MDB -->
+    <script
+    type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"
+    ></script>
+    <script type="text/javascript">
+        const title = document.getElementById("full_box")
+        title.classList.add('animate__animated', 'animate__fadeIn');
+        function checkStudent(){
+            const studentname = document.getElementById("student").value;
+            const timein = document.getElementById("time_in_div");
+            const timeout = document.getElementById("time_out_div");
+            if(studentname == ""){
+                timein.style.display = "none";
+                timeout.style.display = "none";
+                return;
+            }
+            const params = {
+                student : studentname,
+            };
+            const options = {
+                method: 'POST',
+                body: JSON.stringify(params),
+                credentials: 'same-origin',
+                headers : {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            };
+            fetch("{{request.build_absolute_uri}}webhooks/checkin/", options )
+                .then( response => response.json() )
+                .then( response => {
+                    // Do something with response
+                    if(response["on_clock"]){
+                        //document.getElementById("time_in").required = false;
+                        //document.getElementById("time_out").required = true;
+                        timein.style.display = "none";
+                        timeout.classList.add('animate__animated','animate__fadeIn');
+                        timeout.style.setProperty('--animate-duration', '0.5s');
+                        timeout.style.display = "block";
+
+                    }
+                    else{
+                        //document.getElementById("time_in").required = true;
+                        //document.getElementById("time_out").required = false;
+                        timein.classList.add('animate__animated','animate__fadeIn');
+                        timein.style.setProperty('--animate-duration', '0.5s');
+                        timein.style.display = "block";
+                        timeout.style.display = "none";
+                    }
+                    console.log(response);
+                })
+                .catch(err => console.log(err));;
+            }
+    </script>
+    <script>
+      student_header = document.getElementById("student_header")
+      student_list = document.getElementById("student_list")
+      student_header.classList.add('animate__animated','animate__fadeIn');
+      student_header.style.setProperty('--animate-duration', '0.5s');
+      student_list.classList.add('animate__animated','animate__fadeIn');
+      student_list.style.setProperty('--animate-duration', '0.5s');
+      function grabAvailableStudents(){
+        const options = {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers : {
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+          }
+      };
+      fetch("{{request.build_absolute_uri}}webhooks/students/", options )
+                .then( response => response.json() )
+                .then( response => {
+                  const students = response['students'];
+		if(students.length < 1){
+                    student_header.style.display = "none";
+	            student_list.innerHTML = '';
+		}
+                else{
+                    student_header.style.display = "block";
+		    student_list.innerHTML = '';
+                    for(var i = 0; i < students.length; i++){
+                      var student_item = document.createElement("li");
+                      student_item.innerHTML = students[i];
+                      student_item.classList.add("text-white-50");
+                      student_list.appendChild(student_item);
+                      }
+                    }
+                })
+                .catch(err => console.log(err));;
+      }
+      grabAvailableStudents();
+      setInterval(grabAvailableStudents,1000 * 30);
+
+    </script>
+</html> 
