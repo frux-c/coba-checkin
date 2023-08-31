@@ -31,8 +31,8 @@
 					{% csrf_token %}
 					<h4>Swipe Card<br />or<br />Sign In Manually</h4>
 					<select name="name" id="name">
-						<option value="default" selected>
-							Choose Name
+						<option value="default" selected disabled>
+							Name
 						</option>
 						{% for name in names %}
 						<option value="{{ name }}">{{ name }}</option>
@@ -43,8 +43,12 @@
 						name="ID"
 						id="ID"
 						placeholder="ID"
+						required
 					/>
 					<p id="current-time"></p>
+					{% if invalid %}
+					<em>ID incorrect</em>
+					{% endif %}
 					<button type="submit">Submit</button>
 				</form>
 			</div>

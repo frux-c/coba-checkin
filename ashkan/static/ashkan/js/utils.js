@@ -1,7 +1,7 @@
-function delayedRedirectHome() {
+function delayedRedirectHome(delaySecs) {
 	setTimeout(() => {
 		location.assign("/ashkan");
-	}, 3000);
+	}, delaySecs*1000);
 }
 
 function getTime() {

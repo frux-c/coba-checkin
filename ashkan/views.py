@@ -43,4 +43,7 @@ def handle_checkin(request):
         })
     else:
         # incorrect name + id
-        return HttpResponse("whoops, it's wrong!")
+        return render(request, './ashkan/home.html', {
+            "names": Student.objects.all(),
+            "invalid": True
+        })
