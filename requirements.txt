@@ -19,3 +19,4 @@ matplotlib
 daphne
 channels
 channels-redis
+pyscopg-binary
