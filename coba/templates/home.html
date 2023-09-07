@@ -1,13 +1,15 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="home.css">
-    <link rel="stylesheet" href="success-anim.css">
-    <link rel="stylesheet" href="failure-anim.css">
+    <title>Check-Ins</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/success-anim.css' %}">
+    <link rel="stylesheet" href="{% static 'css/failure-anim.css' %}">
   </head>
   <body>
     <div id="container">
@@ -15,15 +17,14 @@
           <div>
             <h1 class="header">Session Log(s)</h1>
           </div>
-          <ul>
-            <li><div><p>log1</p></div></li>
+          <ul id="logs-list">
           </ul>
         </div>
         <div id="form-div">
           <form onsubmit="return false">
             <div class="form-item"><label>Student Name</label>
                 <div class="input-wrapper"><input type="text" id="username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" />
-                  <div id="suggestion-dropdown"></div>
+                  <div style="display: none;" id="suggestion-dropdown"></div>
                 </div>
             </div>
             <div class="form-item"><label>Student ID</label>
@@ -38,12 +39,12 @@
         </form>
         <div id="response-display">
           <!-- Success animation START -->
-          <div id="success-div" class="success-animation">
+          <div id="success-div" class="success-animation animate__animated animate__rotateOut animate__delay-2s">
             <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" /><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" /></svg>
           </div>
           <!-- Success animation END -->
           <!-- Faliure animation START-->
-          <div id="failure-div">
+          <div id="failure-div"  class="animate__animated animate__rotateOut animate__delay-2s">
             <div class="circle-border"></div>
             <div class="circle">
                 <div class="error"></div>
@@ -57,11 +58,12 @@
             <h1 class="header">Available Student(s)</h1>
         </div>
         <ul>
-          <li><div><label>Abel</label></div></li>
+          <li>Abel Chaka</li>
         </ul>
       </div>
     </div>
   </body>
-  <script type="text/javascript" src="home.js"></script>
-  <script type="text/javascript" src="events.js"></script>
+  <script type="text/javascript" src="{% static 'js/home.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/events.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/websocket_handler.js' %}"></script>
 </html>

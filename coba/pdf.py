@@ -4,8 +4,6 @@ import os
 import pathlib
 from datetime import datetime,timedelta
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import shutil
 
 FILE_PATH = pathlib.Path(__file__).parent.resolve()
@@ -146,19 +144,19 @@ def construct(students : list):
     name_and_hour = dict()
     name_and_day = dict()
     for student in students:
-        t_in = student.get("Real Time In")
-        t_out = student.get("Real Time Out")
+        t_in = student.get("time_in")
+        t_out = student.get("time_out")
         total_hr = 0 if '-' in (t_in+t_out) else (datetime.strptime(t_out.split('.')[0],"%H:%M:%S") - datetime.strptime(t_in.split('.')[0],"%H:%M:%S")).seconds/3600
         # generate total hour for week per student
-        if name_and_hour.get(student.get('Name')) is None:
-            name_and_hour[student.get('Name')] = total_hr
+        if name_and_hour.get(student.get("name")) is None:
+            name_and_hour[student.get("name")] = total_hr
         else:
-            name_and_hour[student.get('Name')] += total_hr
+            name_and_hour[student.get("name")] += total_hr
         #generate total hour for each day per student   
-        if name_and_day.get(student.get('Name')) is None:
-            name_and_day[student.get('Name')] = [(str(student.get("Date Created")),total_hr)]
+        if name_and_day.get(student.get("name")) is None:
+            name_and_day[student.get("name")] = [(str(student.get("date_created")),total_hr)]
         else:
-            name_and_day[student.get('Name')].append((str(student.get("Date Created")),total_hr))
+            name_and_day[student.get("name")].append((str(student.get("date_created")),total_hr))
     for name in name_and_hour:
         name_and_hour[name] = round(name_and_hour[name],2)
     for name in name_and_day:

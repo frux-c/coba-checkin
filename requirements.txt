@@ -19,4 +19,5 @@ matplotlib
 daphne
 channels
 channels-redis
-pyscopg-binary
+psycopg2-binary
+djangorestframework

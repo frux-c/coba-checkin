@@ -19,23 +19,3 @@ eye.addEventListener('click', e => {
   passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'
   passwordInput.focus();
 });
-
-async function asyncLoop() {
-  var success_anim = document.getElementById("success-div");
-  var failure_anim = document.getElementById("failure-div");
-  while (true) {
-    // Wait for 3 seconds
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    if(success_anim.style.display === "none"){
-      failure_anim.style.display = "none";
-      success_anim.style.display = "block";
-    }
-    else{
-      failure_anim.style.display = "block";
-      success_anim.style.display = "none";
-    }
-  }
-}
-
-// Start the asynchronous loop
-asyncLoop();

@@ -1,170 +1,154 @@
+import json
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import TemplateView
-from django.http import HttpResponse, JsonResponse
-from .models import Student,CheckIn
-from datetime import datetime,timedelta
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
+from .models import Student, CheckIn
+from datetime import datetime, timedelta
 from datetime import date
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from channels.layers import get_channel_layer # channel websocket import
+from channels.layers import get_channel_layer  # channel websocket import
 from asgiref.sync import async_to_sync, sync_to_async
-import json
-import asyncio
-
+from rest_framework import viewsets, views, authentication, permissions, renderers
+from .serializers import CheckInSerializer, StudentSerializer
+from .consumers import CheckInConsumer
 
 # Create your views here.
 class CheckInView(TemplateView):
+    # write detailed a pydoc for this method
+    """
+    CheckInView : View for the home page
+    """
+    template_name = "home.html"
+
+
+class CheckInAPI(viewsets.ModelViewSet):
     """
 
-    CheckInView : Renders the home page from templates using the 
-    TemplateView Object as parent : read django TemplateView for more Info,
-    and also passes the student query for the student drop down
+    CheckInViewSet : Rest API for CheckIn Model
 
     """
-    template_name="home.html"
+
+    queryset = CheckIn.objects.all()
+    serializer_class = CheckInSerializer
+    permission_classes = [permissions.BasePermission]
+    http_method_names = ["get", "post"]
+
+    # handle get request
+    def list(self, request, *args, **kwargs):
+        # handle the request object
+        payload = request.data or request.GET.dict()
+        if payload:
+            if payload.get("on_clock"):
+                response = CheckInSerializer(data=self.queryset.filter(
+                    is_on_clock=bool(payload.get("on_clock"))), many=True)
+        else:
+            # get todays records only
+            response = CheckInSerializer(data=self.queryset.filter(
+                date=datetime.now()), many=True)
+        response.is_valid()
+        return JsonResponse({"checkins": response.data})
     
-    def get_context_data(self, **kwargs):
-        print(Student.objects.all())
-        kwargs["students"] = Student.objects.all()
-        return super().get_context_data(**kwargs)
-        
 
-@require_POST
-def checkInWebhook(request):
-    """"
+    # handle post request
+    def create(self, request, *args, **kwargs):
+        # handle the request object
+        try:
+            payload = json.loads(request.data)
+        except TypeError:
+            payload = request.data
+        except json.JSONDecodeError:
+            payload = request.POST.dict()
+        print(payload)
+        checkin_type = payload.get("type")
+        student = None
+        if checkin_type == "form":
+            full_name = payload.get("student_name").split(" ")
+            fname = full_name[0]
+            lname = full_name[-1]
+            _id = payload.get("student_id")
+            if Student.objects.filter(
+                first_name=fname, last_name=lname, _id=_id
+            ).exists():
+                student = Student.objects.get(first_name=fname, last_name=lname, _id=_id)
+            else:
+                return JsonResponse({"message": "No matching user found"}, status=404)
+        if checkin_type == "nfc":
+            faculty_code = payload.get("faculty_code")
+            card_number = payload.get("card_number")
+            if Student.objects.filter(
+                card__faculty__code=faculty_code, card__card_number=card_number
+            ).exists():
+                student = Student.objects.get(
+                    card__faculty__code=faculty_code, card__card_number=card_number
+                )
+            else:
+                return JsonResponse({"message": "No matching user found"}, status=404)
+        # check if the student is already on the clock
+        if CheckIn.objects.filter(user=student, is_on_clock=True).exists():
+            # checkout the student
+            checkin = CheckIn.objects.get(user=student, is_on_clock=True)
+            # TODO : add image proof, if the student is checking out;
+            checkin.is_on_clock = False
+            checkin.auto_time_out = datetime.now()
+            checkin.save()
+            # announce the student has been checked out
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                CheckInConsumer.GROUP_NAME,
+                {
+                    "type": "send_group_message",
+                    "message": f"{student.first_name} {student.last_name} has been checked out",
+                    "event": "websocket.checkout",
+                },
+            )
+            return JsonResponse(
+                {"message": "Student has checked out", "check_in" : False}, status=200
+            )
+        else:
+            # checkin the student
+            checkin = CheckIn.objects.create(user=student)
+            checkin.save()
+            # announce the student has been checked in
+            channel_layer = get_channel_layer()
+            
+            async_to_sync(channel_layer.group_send)(
+                CheckInConsumer.GROUP_NAME,
+                {
+                    "type": "send_group_message",
+                    "message": f"{student.first_name} {student.last_name} has been checked in",
+                    "event": "websocket.checkin",
+                },
+            )
+        return JsonResponse({"message": "Student has checked in", "check_in" : True}, status=201)
 
-    checkInWebhook : Returns true or false depending if student/employee is on clock or not. 
-    accepts json payload with key "student" and value is a full name.
-        Ex. "John Smith" : {"student" : "John Smith"},
-        NOTE : Student has to already exist in database.
 
+class StudentsAPI(viewsets.ModelViewSet):
     """
-    payload = json.loads(request.body)
-    if payload["student"] == "":
-        return HttpResponse(status=200)
-    #get Student Name and check if they're on clock
-    student = payload["student"].split(" ",1)
-    student_object = get_object_or_404(Student,
-                                first_name = student[0],
-                                last_name = student[-1])
-    check = CheckIn.objects.filter(user=student_object,
-                                    is_on_clock = True)
-    if check.exists():
-        return JsonResponse({"on_clock" : True})
-    return JsonResponse({"on_clock" : False})
-
-
-@require_POST
-def checkOutWebhook(request):
+    StudentViewSet : Rest API for Student Model
     """
-    checkOutWebhook : downloads and maps a checkout image to a checkin object
+    authentication_classes = [authentication.BasicAuthentication]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    renderer_classes = [renderers.JSONRenderer]
+    http_method_names = ["get"]
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
 
-    """
-    img = request.FILES['snap']
-    fss = FileSystemStorage()
-    payload = request.POST.dict()
-    if payload["checkin_pk"] == "":
-        return HttpResponse(status=401)
-    check = CheckIn.objects.filter(pk=int(payload["checkin_pk"]))
-    if check.exists():
-        check = check[0]
-        file = fss.save(f"{check.user.last_name}-{check.user.first_name}-{date.today()}.jpg", img)
-        check.image_proof = file
-        check.auto_time_out = datetime.now()
-        check.save()
-    return HttpResponse(status=200)
+    # handle get request
+    def list(self, request, *args, **kwargs):
+        # handle the request object
+        response = StudentSerializer(data=self.queryset, many=True)
+        response.is_valid()
+        return JsonResponse({"students": response.data})
 
-def acceptCheckForm(request):
-    """
-        acceptCheckForm : signs in/out students depending on the state
-    """
-    channel_layer = get_channel_layer()
-    payload = request.POST.dict()
-    if payload.get("student") is None:
-        return render(request,"checkLanding.html")
-    student = payload["student"].split(" ",1)
-    id_num = payload["id_number"]
-    student_object = Student.objects.filter(
-                                        first_name=student[0],
-                                        last_name=student[-1],
-                                        _id=id_num)
-    if student_object.exists():
-        student_object = student_object[0]
-    else:
-        return redirect("home")
+class TemplateErrorMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    check = CheckIn.objects.filter(user=student_object,
-                                    is_on_clock=True)
-    if check.exists():
-        check = check[0]
-        check.auto_time_out = datetime.now()
-        check.time_out = payload['time_out'] if payload['time_out'] != "" else None
-        check.is_on_clock = False
-        check.save()
-    else:
-        check = CheckIn(user=student_object,
-                        time_in=payload['time_in'] if payload['time_in'] != "" else None,
-                        is_on_clock=True)
-        check.save()
-    async_to_sync(channel_layer.group_send)('events',
-        {"type" : "send_message",
-         "event" : "websocket.update_students",
-         "message" : ",".join([f"{model.user}" for model in CheckIn.objects.filter(is_on_clock=True)])
-         })
-    return render(request,"checkLanding.html",{"student" : student_object, "status" : check})
-
-@csrf_exempt
-@require_POST
-def getStudentId(request):
-    """
-    Private API used by checkin app webdriver to sign-in/out students.
-    @param request : http post request
-
-    request body should contain two parameters, 
-        first_name key mapped to a str first name
-        last_name key mapped to a str last name 
-    @return
-        a json object with one key "id_number" contaning a 8 digit id number 
-    """
-    payload = json.loads(request.body)
-    student = Student.objects.filter(
-        first_name=payload.get("first_name"),
-        last_name=payload.get("last_name")
-    )
-    if student.exists():
-        student = student[0]
-        return JsonResponse({"id_number" : student._id},status=200)
-    else:
-        return JsonResponse({"id_number" : "00000000"})
-
-@require_POST
-def getAvailableStudents(request):
-    """
-    Returns a json object with one key "students" which is mapped
-    to a list of student names that are on clock.
-    """
-    students = CheckIn.objects.filter(is_on_clock=True)
-    students_on_clock = [str(student) for student in students]
-    return JsonResponse({"students" : students_on_clock})
-
-
-def handle404(request,exception):
-    """
-
-    Error 404 Page Handler
-
-    """
-    return render(request,'handler.html',{
-        'status_code' : 404
-    })
-
-def handle500(request):
-    """
-
-    Error 500 Page Handler
-    
-    """
-    return render(request,'handler.html',{
-        'status_code' : 500
-    })
+    def __call__(self, request):
+        response = self.get_response(request)  # get response from the request
+        status_code = response.status_code
+        if status_code >= 404: 
+            return render(request, "error_middleware_handler.html", {"status_code": response.status_code})
+        return response

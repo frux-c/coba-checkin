@@ -24,6 +24,3 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ashkan/', include("ashkan.urls"), name="ashkan")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-handler404 = 'coba.views.handle404'
-handler500 = 'coba.views.handle500'

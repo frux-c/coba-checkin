@@ -1,87 +1,56 @@
-let names = [
-  "John",
-  "Jane",
-  "Michael",
-  "Emily",
-  "David",
-  "Sarah",
-  "Robert",
-  "Jessica",
-  "William",
-  "Olivia",
-  "James",
-  "Sophia",
-  "Benjamin",
-  "Emma",
-  "Daniel",
-  "Ava",
-  "Joseph",
-  "Mia",
-  "Christopher",
-  "Isabella",
-  "Matthew",
-  "Charlotte",
-  "Andrew",
-  "Amelia",
-  "Ethan",
-  "Harper",
-  "Alexander",
-  "Evelyn",
-  "Nicholas",
-  "Abigail",
-  "Samuel",
-  "Grace",
-  "Christopher",
-  "Lily",
-  "Joshua",
-  "Chloe",
-  "Anthony",
-  "Zoe",
-  "Thomas",
-  "Madison",
-  "Daniel",
-  "Scarlett",
-  "William",
-  "Lily",
-  "Matthew",
-  "Aria",
-  "Jackson",
-  "Layla",
-  "Logan",
-  "Sofia"
-];
-
-
-let sortedNames = names.sort()
-
-const sname_input = document.getElementById("username"); 
+const sname_input = document.getElementById("username");
 const sid_input = document.getElementById("password");
 const suggestionList = document.getElementById("suggestion-dropdown");
 const submit_button = document.getElementById("submit");
+const success_anim = document.getElementById("success-div");
+const failure_anim = document.getElementById("failure-div");
 
-function submitForm(){
-	console.log(sname_input.value, sid_input.value);
-	sname_input.value = "";
-	sid_input.value = "";
+async function playSuccess() {
+	success_anim.style.display = "block";
+	await new Promise(resolve => setTimeout(resolve, 3000));
+	success_anim.style.display = "none";
 }
 
-submit_button.addEventListener("click", function(){
-	if(sname_input.value == "" || sid_input.value == "") return
-	submit_button.disabled = true;
-	submitForm();
-	console.log("button is clicked and disabled");
-	setTimeout(function(){
-		console.log("button is ready to be clicked again");
-		submit_button.disabled = false;
-	}, 2000);
-})
+async function playFailure() {
+	failure_anim.style.display = "block";
+	await new Promise(resolve => setTimeout(resolve, 3000));
+	failure_anim.style.display = "none";
+}
 
+// Get all students' names from the database
+async function populateStudentNameList() {
+	let names = [];
+	await fetch(window.location.href + "api/students/", {
+		method: "GET",
+		credentials: "same-origin",
+	})
+	.then((response) => response.json())
+	.then((response) => {
+		for (student of response["students"])
+			names.push(student["first_name"] + " " + student["last_name"]);
+		// sort the names alphabetically
+		names = names.sort();
+	})
+	.catch((err) => {
+		console.log(err)
+	});
+	return names;
+}
+
+// Sort the names alphabetically
+let sortedNames = [];
+populateStudentNameList().then((names) => sortedNames = names);
+
+// suggest names as user types
 sname_input.addEventListener("keyup", (e) => {
 	suggestionList.innerHTML = "";
-	for(let i of sortedNames){
-		if(sname_input.value != "" && i.toLowerCase().startsWith(sname_input.value.toLowerCase())){
+	for (let i of sortedNames) {
+		if (
+			sname_input.value != "" &&
+			i.toLowerCase().startsWith(sname_input.value.toLowerCase())
+		) {
 			let listItem = document.createElement("div");
-			listItem.setAttribute("onclick", "displayNames('" + i + "')");
+			listItem.setAttribute("onclick", "selectName('" + i + "')");
 			listItem.classList.add("suggestion-item");
 			let context = document.createElement("label");
 			listItem.appendChild(context);
@@ -92,15 +61,58 @@ sname_input.addEventListener("keyup", (e) => {
 			suggestionList.appendChild(listItem);
 		}
 	}
-})
+});
 
-function checkAndToggleSuggestionDropDown(){
-	suggestionList.style.display = suggestionList.hasChildNodes()?"block":"none";
-}
+// submit form when user clicks submit button
+submit_button.addEventListener("click", function () {
+	if (sname_input.value == "" || sid_input.value == "") return;
+	submit_button.disabled = true;
+	submitForm();
+	setTimeout(function () {
+		submit_button.disabled = false;
+	}, 2000);
+});
 
-function displayNames(value){
+// hide suggestion list when user clicks outside of it
+setInterval(() => {
+	suggestionList.style.display = suggestionList.hasChildNodes()
+		? "block"
+		: "none";
+}, 250);
+
+function selectName(value) {
 	sname_input.value = value;
 	suggestionList.innerHTML = "";
 }
 
-setInterval(checkAndToggleSuggestionDropDown, 100);
+
+function submitForm() {
+	console.log(sname_input.value, sid_input.value);
+	fetch(window.location.href + "api/checkins/", {
+		method: "POST",
+		credentials: "same-origin",
+		body: JSON.stringify({
+			student_name: sname_input.value,
+			student_id: parseInt(sid_input.value),
+			type: "form",
+		}),
+		headers: {
+			Accept: "application/json",
+			"Content-Type": "application/json",
+		},
+	})
+		.then((response) => response.json())
+		.then((response) => {
+			console.log(response);
+			if (response["check_in"] === true) {
+				playSuccess();
+			} else if (response["check_in"] === false) {
+				playSuccess();
+			} else {
+				playFailure();
+			}
+		})
+		.catch((err) => console.log(err));
+	sname_input.value = "";
+	sid_input.value = "";
+}

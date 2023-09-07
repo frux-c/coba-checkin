@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 TEMPLATE_DIRS = [
-    os.path.join(PROJECT_PATH, 'templates/'),
+    os.path.join(PROJECT_PATH, "templates/"),
 ]
 
 
@@ -25,107 +25,115 @@ TEMPLATE_DIRS = [
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "SECRET"
+SECRET_KEY = os.environ.get("COBA_DEV_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+APPEND_SLASH = True
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(";")
 
-ALLOWED_HOSTS = ["SECRET"]
-
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Application definition
 
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(";")
+
+# CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
-    'channels',
-    'daphne',
-    'coba.apps.CobaConfig',
-    'ashkan.apps.AshkanConfig',
-    'django_extensions',
-    'django_q',
-    'simple_history',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "channels",
+    "daphne",
+    "django_extensions",
+    "django_q",
+    "simple_history",
+    "rest_framework",
+    "coba.apps.CobaConfig",
+    "ashkan.apps.AshkanConfig",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 ]
 
 Q_CLUSTER = {
-    'name': 'coba_cluster',
-    'workers' : 1,
-    'retry' : 60 * 4,
-    'max_attempts' : 1,
-    'timeout' : 60 * 3,
-    'orm' : 'default',
-    'has_replica' : True,
+    "name": "coba_cluster",
+    "workers": 1,
+    "retry": 60 * 4,
+    "max_attempts": 1,
+    "timeout": 60 * 3,
+    "orm": "default",
+    "has_replica": True,
 }
 
-#EMAIL SETUP 
+# EMAIL SETUP
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "SECRET"
 EMAIL_PORT = 25
-EMAIL_HOST_USER = 'no.reply.calclab.weekly@utep.edu'
+EMAIL_HOST_USER = "no.reply.calclab.weekly@utep.edu"
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = False
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
+    #"coba.views.TemplateErrorMiddleware",
 ]
 
-ROOT_URLCONF = 'CheckSystem.urls'
+ROOT_URLCONF = "CheckSystem.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR + '/templates/'
-        ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR + "/templates/"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'CheckSystem.wsgi.application'
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+
+WSGI_APPLICATION = "CheckSystem.wsgi.application"
 
 # Channels settings
-ASGI_APPLICATION = 'CheckSystem.asgi.application'
-CHANNEL_LAYERS ={
-    'default' : {
-        'BACKEND' : "channels_redis.core.RedisChannelLayer",
-        'CONFIG' : {
-            'hosts' : [('localhost',6379)]
-        }
-        # option if want to use redis
-        # 'BACKEND' :'channels.layers.InMemoryChannelLayer',
+ASGI_APPLICATION = "CheckSystem.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        # 'BACKEND' : "channels_redis.core.RedisChannelLayer",
         # 'CONFIG' : {
-        #     'hosts' : [CHANNEL_REDIS_HOST],
-        #     ''
-        # }
+        #     'hosts' : [('127.0.0.1',6379)]
+        # },
+        # option if want to use redis
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -135,16 +143,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -152,9 +160,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'MST7MDT'
+TIME_ZONE = "MST7MDT"
 
 USE_I18N = True
 
@@ -166,8 +174,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

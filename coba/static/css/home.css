@@ -10,6 +10,7 @@
 }
  html, body {
 	height: 100%;
+	font-family: monospace;
 }
  body {
 	 display: grid;
@@ -172,8 +173,7 @@ form {
 	width:30vw;
 }
 .header{
-	font-size:2.5rem;
-	font-family: monospace;
+	font-size:1.5rem;
 	color: var(--inputColor);
 	text-align: center;
 }
@@ -199,6 +199,20 @@ form {
 }
 .suggestion-item:hover{
 	border-bottom: 2px solid var(--inputColor);
+}
+
+#logs-div, #students-div {
+	padding: 50px;
+}
+
+#logs-div li{
+	color: var(--inputColor);
+	/* border-bottom: 1px solid var(--inputColor); */
+	display: flex;
+	align-items: center;
+	justify-content: left;
+	gap: 2rem;
+	padding: 0.25rem;
 }
 
 #success-div, #failure-div{
