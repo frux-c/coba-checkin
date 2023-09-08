@@ -22,6 +22,14 @@ class CheckInView(TemplateView):
     """
     template_name = "home.html"
     
+    # handle context data
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # get todays records only
+        context["students"] = [
+            student.user.first_name + " " + student.user.last_name for student in CheckIn.objects.filter(is_on_clock=True, date_created=datetime.now())
+            ]
+        return context
 
 
 class CheckInAPI(viewsets.ModelViewSet):

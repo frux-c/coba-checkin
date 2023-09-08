@@ -59,6 +59,9 @@
             <h1 class="header">Available Student(s)</h1>
         </div>
         <ul id="students-list">
+          {% for student in students %}
+            <li class="student-item"><span class="wave">&#128075;</span>{{ student }}</li>
+          {% endfor %}
         </ul>
       </div>
     </div>
