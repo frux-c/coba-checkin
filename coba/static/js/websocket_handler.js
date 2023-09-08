@@ -1,5 +1,5 @@
 // connect to websocket
-const websocket_url = window.location.protocol=="https"?"wss://":"ws://" + window.location.host;
+const websocket_url = window.location.protocol==="https:"?"wss://":"ws://" + window.location.host;
 var socket = new WebSocket(websocket_url);
 
 // useful elements
