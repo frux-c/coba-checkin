@@ -21,6 +21,7 @@ class CheckInView(TemplateView):
     CheckInView : View for the home page
     """
     template_name = "home.html"
+    
 
 
 class CheckInAPI(viewsets.ModelViewSet):
@@ -39,14 +40,15 @@ class CheckInAPI(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # handle the request object
         payload = request.data or request.GET.dict()
+        time_stamp = datetime.now()
         if payload:
             if payload.get("on_clock"):
                 response = CheckInSerializer(data=self.queryset.filter(
-                    is_on_clock=bool(payload.get("on_clock"))), many=True)
+                    is_on_clock=bool(payload.get("on_clock")), date_created=time_stamp), many=True)
         else:
             # get todays records only
             response = CheckInSerializer(data=self.queryset.filter(
-                date=datetime.now()), many=True)
+                date_created=time_stamp), many=True)
         response.is_valid()
         return JsonResponse({"checkins": response.data})
     
@@ -86,41 +88,50 @@ class CheckInAPI(viewsets.ModelViewSet):
             else:
                 return JsonResponse({"message": "No matching user found"}, status=404)
         # check if the student is already on the clock
-        if CheckIn.objects.filter(user=student, is_on_clock=True).exists():
+        existing_checkin = CheckIn.objects.filter(user=student, is_on_clock=True).first()
+        time_stamp = datetime.now()
+        if existing_checkin:
             # checkout the student
-            checkin = CheckIn.objects.get(user=student, is_on_clock=True)
-            # TODO : add image proof, if the student is checking out;
-            checkin.is_on_clock = False
-            checkin.auto_time_out = datetime.now()
-            checkin.save()
+            existing_checkin.is_on_clock = False
+            existing_checkin.auto_time_out = time_stamp
+            existing_checkin.save()
             # announce the student has been checked out
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 CheckInConsumer.GROUP_NAME,
                 {
                     "type": "send_group_message",
-                    "message": f"{student.first_name} {student.last_name} has been checked out",
+                    "message": f"{student.first_name} {student.last_name} has checked out",
                     "event": "websocket.checkout",
                 },
-            )
-            return JsonResponse(
-                {"message": "Student has checked out", "check_in" : False}, status=200
             )
         else:
             # checkin the student
             checkin = CheckIn.objects.create(user=student)
+            checkin.is_on_clock = True
+            checkin.auto_time_in = time_stamp
             checkin.save()
             # announce the student has been checked in
             channel_layer = get_channel_layer()
-            
             async_to_sync(channel_layer.group_send)(
                 CheckInConsumer.GROUP_NAME,
                 {
                     "type": "send_group_message",
-                    "message": f"{student.first_name} {student.last_name} has been checked in",
+                    "message": f"{student.first_name} {student.last_name} has checked in",
                     "event": "websocket.checkin",
                 },
             )
+        # announce client to update the students list
+        async_to_sync(channel_layer.group_send)(
+            CheckInConsumer.GROUP_NAME,
+            {
+                "type": "send_group_message",
+                "message": StudentSerializer([
+                    checkin.user for checkin in CheckIn.objects.filter(is_on_clock=True, date_created=time_stamp)
+                    ], many=True).data,
+                "event": "websocket.update_students",
+            },
+        )
         return JsonResponse({"message": "Student has checked in", "check_in" : True}, status=201)
 
 

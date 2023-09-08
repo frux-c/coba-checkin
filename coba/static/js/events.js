@@ -116,3 +116,20 @@ function submitForm() {
 	sname_input.value = "";
 	sid_input.value = "";
 }
+
+// // updates the available students from the api
+// function updateAvailableStudents() {
+// 	fetch(window.location.href + "api/checkins?on_clock=true", {
+// 		method: "GET",
+// 		credentials: "same-origin",
+// 	})
+// 	.then((response) => response.json())
+// 	.then((response) => {
+// 		var checkins = response["checkins"];
+// 		console.log(checkins);
+// 	})
+// 	.catch((err) => {
+// 		console.log(err);
+// 	});
+// }
+// updateAvailableStudents();
