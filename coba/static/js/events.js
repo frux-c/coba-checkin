@@ -22,7 +22,12 @@ async function populateStudentNameList() {
 	let names = [];
 	await fetch(window.location.href + "api/students/", {
 		method: "GET",
-		credentials: "same-origin",
+		cors: "cors",
+		headers: {
+			"Accept": "application/json",
+			"Content-Type": "application/json",
+			"X-CSRFToken": document.getElementsByName("csrfmiddlewaretoken")[0].value,
+		},
 	})
 	.then((response) => response.json())
 	.then((response) => {
@@ -90,46 +95,30 @@ function submitForm() {
 	console.log(sname_input.value, sid_input.value);
 	fetch(window.location.href + "api/checkins/", {
 		method: "POST",
-		credentials: "same-origin",
+		cors: "cors",
 		body: JSON.stringify({
 			student_name: sname_input.value,
 			student_id: parseInt(sid_input.value),
 			type: "form",
 		}),
 		headers: {
-			Accept: "application/json",
+			"Accept": "application/json",
 			"Content-Type": "application/json",
+			"X-CSRFToken": document.getElementsByName("csrfmiddlewaretoken")[0].value,
 		},
 	})
-		.then((response) => response.json())
-		.then((response) => {
-			console.log(response);
-			if (response["check_in"] === true) {
-				playSuccess();
-			} else if (response["check_in"] === false) {
-				playSuccess();
-			} else {
-				playFailure();
-			}
-		})
-		.catch((err) => console.log(err));
+	.then((response) => response.json())
+	.then((response) => {
+		console.log(response);
+		if (response["check_in"] === true) {
+			playSuccess();
+		} else if (response["check_in"] === false) {
+			playSuccess();
+		} else {
+			playFailure();
+		}
+	})
+	.catch((err) => console.log(err));
 	sname_input.value = "";
 	sid_input.value = "";
 }
-
-// // updates the available students from the api
-// function updateAvailableStudents() {
-// 	fetch(window.location.href + "api/checkins?on_clock=true", {
-// 		method: "GET",
-// 		credentials: "same-origin",
-// 	})
-// 	.then((response) => response.json())
-// 	.then((response) => {
-// 		var checkins = response["checkins"];
-// 		console.log(checkins);
-// 	})
-// 	.catch((err) => {
-// 		console.log(err);
-// 	});
-// }
-// updateAvailableStudents();

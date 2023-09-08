@@ -24,7 +24,7 @@ socket.onmessage = (message) => {
         var wave = document.createElement("span");
         wave.classList.add("wave");
         wave.innerHTML = "&#128075;";
-        for(student_obj of payload.message){
+        for(let student_obj of payload.message){
             var student = document.createElement("li");
             student.appendChild(wave);
             student.innerHTML += student_obj.first_name + " " + student_obj.last_name;
