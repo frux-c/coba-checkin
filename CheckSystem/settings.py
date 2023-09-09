@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import dotenv
+
+# Load environment by loading path of file from environment
+# dotenv.load_dotenv("/shared/.env.prod.secrets")
+dotenv.load_dotenv(os.environ["DJANGO_ENV_PATH"])
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,16 +30,16 @@ TEMPLATE_DIRS = [
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("COBA_DEV_SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 APPEND_SLASH = True
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(";")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Application definition
 
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(";")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
 
 # CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
@@ -67,7 +72,7 @@ Q_CLUSTER = {
 # EMAIL SETUP
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "SECRET"
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = 25
 EMAIL_HOST_USER = "no.reply.calclab.weekly@utep.edu"
 EMAIL_USE_TLS = False
