@@ -5,11 +5,9 @@ from asgiref.sync import async_to_sync, sync_to_async
 # from channels.exceptions import DenyConnection
 from channels.consumer import AsyncConsumer
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-
-# #django imports
-# from django.core.exceptions import ObjectDoesNotExist
-# from django.contrib.auth.models import AnonymousUser
-
+#django imports
+import django
+django.setup()
 #local imports
 from .models import CheckIn, Student
 import json

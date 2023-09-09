@@ -4,7 +4,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from . import routing
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'CheckSystem.settings')
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'CheckSystem.settings'
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

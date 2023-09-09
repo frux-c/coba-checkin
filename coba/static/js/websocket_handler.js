@@ -1,4 +1,3 @@
-
 // connect to websocket
 const websocket_url = (window.location.protocol==="https:"?"wss://":"ws://") + window.location.host + "/ws/";
 
@@ -16,6 +15,7 @@ socket.onopen = () => {
 
 socket.onmessage = (message) => {
     payload = JSON.parse(message.data);
+    console.log(payload);
     if(payload.event === "websocket.checkin" || payload.event === "websocket.checkout"){
         // update logs for current session
         event_log = document.createElement("li");
@@ -35,3 +35,4 @@ socket.onmessage = (message) => {
         }
     }
 }
+

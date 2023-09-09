@@ -32,7 +32,7 @@ TEMPLATE_DIRS = [
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 APPEND_SLASH = True
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
@@ -40,25 +40,28 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Application definition
 
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
-CORS_ALLOWED_ORIGIN_REGEXES = []
+CORS_ALLOWED_ORIGIN_REGEXES = [
+	r"^https://\w+\.tacclab\.org$",
+	r"tacclinux",
+	r"localhost"
+]
 
 # CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
-    "channels",
-    "daphne",
-    "corsheaders",
-    "django_extensions",
-    "django_q",
-    "simple_history",
-    "rest_framework",
-    "coba.apps.CobaConfig",
-    "ashkan.apps.AshkanConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "daphne",
+    "channels",
+    "corsheaders",
+    "django_extensions",
+    "simple_history",
+    "coba.apps.CobaConfig",
+    "ashkan.apps.AshkanConfig"
 ]
 
 Q_CLUSTER = {
@@ -188,3 +191,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STATICFILES_DIR = [
+	os.path.join(BASE_DIR, "coba", "static")
+]
