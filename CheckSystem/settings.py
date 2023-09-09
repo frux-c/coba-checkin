@@ -40,11 +40,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Application definition
 
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
+CORS_ALLOWED_ORIGIN_REGEXES = []
 
 # CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
     "channels",
     "daphne",
+    "corsheaders",
     "django_extensions",
     "django_q",
     "simple_history",
@@ -88,6 +90,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     #"coba.views.TemplateErrorMiddleware",
 ]
 
