@@ -1,10 +1,12 @@
 // connect to websocket
-const websocket_url = window.location.protocol==="https:"?"wss://":"ws://" + window.location.host;
+const websocket_url = (window.location.protocol==="https:"?"wss://":"ws://") + window.location.host;
+
 var socket = new WebSocket(websocket_url);
 
 // useful elements
 const event_log_list = document.getElementById("logs-list");
 const students_list = document.getElementById("students-list");
+
 // display message when connected
 socket.onopen = () => {
     console.log("Connected to websocket");
