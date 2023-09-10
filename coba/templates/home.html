@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Check-Ins</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/success-anim.css' %}">
+    <link rel="stylesheet" href="{% static 'css/failure-anim.css' %}">
+  </head>
+  <body>
+    <div id="container">
+        <div id="logs-div" class="box">
+          <div>
+            <h1 class="header">Session Log(s)</h1>
+          </div>
+          <ul id="logs-list">
+          </ul>
+        </div>
+        <div id="form-div">
+          <form onsubmit="return false">
+            {% csrf_token %}
+            <div class="form-item"><label>Employee Name</label>
+                <div class="input-wrapper"><input type="text" id="username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" />
+                  <div style="display: none;" id="suggestion-dropdown"></div>
+                </div>
+            </div>
+            <div class="form-item"><label>Employee ID</label>
+                <div class="input-wrapper"><input type="password" id="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10"/>
+                <button type="button" id="eyeball">
+                        <div class="eye"></div>
+                    </button>
+                    <div id="beam"></div>
+                </div>
+            </div><button id="submit">Sign in</button>
+        </form>
+        <div id="response-display">
+          <!-- Success animation START -->
+          <div id="success-div" class="success-animation animate__animated animate__rotateOut animate__delay-2s">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" /><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" /></svg>
+          </div>
+          <!-- Success animation END -->
+          <!-- Faliure animation START-->
+          <div id="failure-div"  class="animate__animated animate__rotateOut animate__delay-2s">
+            <div class="circle-border"></div>
+            <div class="circle">
+                <div class="error"></div>
+            </div>
+          </div>
+          <!-- Faliure animation END -->
+        </div>
+      </div>
+      <div id="employees-div" class="box">
+        <div>
+            <h1 class="header">Available Employee(s)</h1>
+        </div>
+        <ul id="employees-list">
+          {% for employee in employees %}
+            <li class="employee-item"><span class="wave">&#128075;</span>{{ employee }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript" src="{% static 'js/home.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/events.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/websocket_handler.js' %}"></script>
+</html>
