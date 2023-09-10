@@ -58,7 +58,7 @@ class CheckIn(models.Model):
     user = models.ForeignKey(
         Student, on_delete=models.PROTECT, verbose_name="Student/Employee Name"
     )
-    date_created = models.DateField(auto_now_add=True, verbose_name="Date")
+    creation_date = models.DateField(auto_now_add=True, verbose_name="Date")
     auto_time_in = models.TimeField(auto_now_add=True, verbose_name="Time In")
     auto_time_out = models.TimeField(
         default=None, null=True, blank=True, verbose_name="Time Out"
@@ -71,7 +71,7 @@ class CheckIn(models.Model):
     def serialize(self):
         rtn = {}
         rtn["name"] = str(self.user)
-        rtn["date_created"] = str(self.date_created)
+        rtn["creation_date"] = str(self.creation_date)
         rtn["time_in"] = str(self.auto_time_in)
         rtn["time_out"] = "-"
         if self.auto_time_out:
@@ -84,10 +84,10 @@ class CheckIn(models.Model):
 class ClockSheet(admin.ModelAdmin):
     list_display = (
         "user",
-        "date_created",
+        "creation_date",
         "auto_time_in",
         "auto_time_out",
         "is_on_clock",
         "timed_out",
     )
-    list_filter = ("date_created",)
+    list_filter = ("creation_date",)

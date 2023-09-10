@@ -1,8 +1,9 @@
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import CheckInView, CheckInAPI, StudentsAPI
+from django.urls import include, path
 from rest_framework import routers
+
+from .views import CheckInAPI, CheckInView, StudentsAPI
 
 router = routers.DefaultRouter()
 router.register('students', StudentsAPI)

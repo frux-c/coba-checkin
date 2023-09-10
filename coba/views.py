@@ -27,7 +27,7 @@ class CheckInView(TemplateView):
         context = super().get_context_data(**kwargs)
         # get todays records only
         context["students"] = [
-            student.user.first_name + " " + student.user.last_name for student in CheckIn.objects.filter(is_on_clock=True, date_created=datetime.now())
+            student.user.first_name + " " + student.user.last_name for student in CheckIn.objects.filter(is_on_clock=True, creation_date=datetime.now())
             ]
         return context
 
@@ -52,11 +52,11 @@ class CheckInAPI(viewsets.ModelViewSet):
         if payload:
             if payload.get("on_clock"):
                 response = CheckInSerializer(data=self.queryset.filter(
-                    is_on_clock=bool(payload.get("on_clock")), date_created=time_stamp), many=True)
+                    is_on_clock=bool(payload.get("on_clock")), creation_date=time_stamp), many=True)
         else:
             # get todays records only
             response = CheckInSerializer(data=self.queryset.filter(
-                date_created=time_stamp), many=True)
+                creation_date=time_stamp), many=True)
         response.is_valid()
         return JsonResponse({"checkins": response.data})
     
@@ -136,7 +136,7 @@ class CheckInAPI(viewsets.ModelViewSet):
             {
                 "type": "send_group_message",
                 "message": StudentSerializer([
-                    checkin.user for checkin in CheckIn.objects.filter(is_on_clock=True, date_created=time_stamp)
+                    checkin.user for checkin in CheckIn.objects.filter(is_on_clock=True, creation_date=time_stamp)
                     ], many=True).data,
                 "event": "websocket.update_students",
             },
