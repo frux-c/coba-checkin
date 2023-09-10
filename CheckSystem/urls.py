@@ -22,5 +22,4 @@ from django.shortcuts import redirect
 urlpatterns = [
     path("", include("coba.urls"), name="home"),
     path('admin/', admin.site.urls),
-    path('ashkan/', include("ashkan.urls"), name="ashkan")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

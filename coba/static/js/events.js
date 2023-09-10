@@ -92,13 +92,12 @@ function selectName(value) {
 
 
 function submitForm() {
-	console.log(sname_input.value, sid_input.value);
 	fetch(window.location.href + "api/checkins/", {
 		method: "POST",
 		cors: "cors",
 		body: JSON.stringify({
 			student_name: sname_input.value,
-			student_id: parseInt(sid_input.value),
+			student_id: sid_input.value,
 			type: "form",
 		}),
 		headers: {
@@ -109,7 +108,6 @@ function submitForm() {
 	})
 	.then((response) => response.json())
 	.then((response) => {
-		console.log(response);
 		if (response["check_in"] === true) {
 			playSuccess();
 		} else if (response["check_in"] === false) {

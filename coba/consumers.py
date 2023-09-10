@@ -1,15 +1,10 @@
 import json
-import asyncio
-from asgiref.sync import async_to_sync, sync_to_async
-#channel imports
-# from channels.exceptions import DenyConnection
 from channels.consumer import AsyncConsumer
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 #django imports
 import django
 django.setup()
 #local imports
-from .models import CheckIn, Student
 import json
 
 class CheckInConsumer(AsyncJsonWebsocketConsumer):
@@ -25,8 +20,8 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 		self.close(close_code)
 
 	async def receive(self,text_data): # called when the client sends message
-		print('websocket.receive is triggered')
-		print(f"message={text_data}")
+		print(f"channel name: {self.channel_name}")
+		print(f"incoming message: {text_data}")
 
 	async def send_group_message(self,res):
 		del res['type']

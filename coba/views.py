@@ -1,18 +1,18 @@
 import json
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import TemplateView
-from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
-from .models import Student, CheckIn
-from datetime import datetime, timedelta
-from datetime import date
-from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import FileSystemStorage
+from datetime import datetime
+
+from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer  # channel websocket import
-from asgiref.sync import async_to_sync, sync_to_async
-from rest_framework import viewsets, views, authentication, permissions, renderers
-from .serializers import CheckInSerializer, StudentSerializer
+from django.core.files.storage import FileSystemStorage # TODO : for image proof
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.generic import TemplateView
+from rest_framework import (authentication, permissions, renderers,viewsets)
+
 from .consumers import CheckInConsumer
+from .models import CheckIn, Student
+from .serializers import CheckInSerializer, StudentSerializer
+
 
 # Create your views here.
 class CheckInView(TemplateView):
@@ -70,7 +70,6 @@ class CheckInAPI(viewsets.ModelViewSet):
             payload = request.data
         except json.JSONDecodeError:
             payload = request.POST.dict()
-        print(payload)
         checkin_type = payload.get("type")
         student = None
         if checkin_type == "form":
@@ -102,6 +101,8 @@ class CheckInAPI(viewsets.ModelViewSet):
             # checkout the student
             existing_checkin.is_on_clock = False
             existing_checkin.auto_time_out = time_stamp
+            # TODO : add image proof later
+            existing_checkin.image_proof = None
             existing_checkin.save()
             # announce the student has been checked out
             channel_layer = get_channel_layer()
@@ -140,6 +141,8 @@ class CheckInAPI(viewsets.ModelViewSet):
                 "event": "websocket.update_students",
             },
         )
+        if existing_checkin:
+            return JsonResponse({"message": "Student has checked out", "check_in" : False}, status=201)
         return JsonResponse({"message": "Student has checked in", "check_in" : True}, status=201)
 
 

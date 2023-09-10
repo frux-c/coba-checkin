@@ -15,7 +15,6 @@ socket.onopen = () => {
 
 socket.onmessage = (message) => {
     payload = JSON.parse(message.data);
-    console.log(payload);
     if(payload.event === "websocket.checkin" || payload.event === "websocket.checkout"){
         // update logs for current session
         event_log = document.createElement("li");

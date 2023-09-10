@@ -32,7 +32,7 @@ TEMPLATE_DIRS = [
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 APPEND_SLASH = True
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
@@ -54,14 +54,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
     "daphne",
     "channels",
+    "django_q",
     "corsheaders",
-    "django_extensions",
+    "rest_framework",
     "simple_history",
+    "django_extensions",
     "coba.apps.CobaConfig",
-    "ashkan.apps.AshkanConfig"
 ]
 
 Q_CLUSTER = {
@@ -131,11 +131,11 @@ WSGI_APPLICATION = "CheckSystem.wsgi.application"
 ASGI_APPLICATION = "CheckSystem.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
+        # option if want to use redis
         # 'BACKEND' : "channels_redis.core.RedisChannelLayer",
         # 'CONFIG' : {
         #     'hosts' : [('127.0.0.1',6379)]
         # },
-        # option if want to use redis
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }

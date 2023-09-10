@@ -5,4 +5,7 @@ media/
 *.png
 *.jpg
 *.gif
+coba/migrations/
 coba-venv/
+static/
+web.config

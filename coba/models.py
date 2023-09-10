@@ -1,10 +1,17 @@
-from django.shortcuts import render
 from django.db import models
 from django.contrib import admin
-from datetime import datetime
 from simple_history.models import HistoricalRecords
-import json
+from hashlib import sha256
 
+class SHA256HashedCharField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 128
+        super(SHA256HashedCharField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        if value is None:
+            return value
+        return sha256(str(value).encode("utf-8")).hexdigest()
 
 # Create your models here.
 class Device(models.Model):
@@ -18,7 +25,7 @@ class Device(models.Model):
 
 class Faculty(models.Model):
     name = models.CharField(max_length=50)
-    code = models.IntegerField(unique=True)
+    code = SHA256HashedCharField(unique=True)
 
     def __str__(self):
         return f"{self.name} (FC:{self.code})"
@@ -27,18 +34,20 @@ class Card(models.Model):
     faculty = models.ForeignKey(
         Faculty, on_delete=models.PROTECT, verbose_name="Faculty"
     )
-    card_number = models.IntegerField(verbose_name="Card Number")
-
+    card_number = SHA256HashedCharField(verbose_name="Card Number")
+    hint = models.CharField(max_length=50, verbose_name="Hint", null=True, blank=True)
     def __str__(self):
-        return f"{self.faculty.name} (FC:{self.faculty.code}) - {self.card_number}"
+        if self.hint is None:
+            return f"{self.faculty.name} (FC:{self.faculty.code}) - {self.card_number}"
+        return f"{self.faculty.name} (FC:{self.faculty.code}) - {self.hint}"
     
 class Student(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    _id = models.CharField(max_length=8, verbose_name="ID", blank=True)
+    _id = SHA256HashedCharField(verbose_name="ID", blank=True)
     card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card", null=True, blank=True)
     email = models.EmailField(
-        unique=True, null=True, blank=True, verbose_name="UTEP Email"
+        unique=True, null=True, blank=True, verbose_name="Email"
     )
 
     def __str__(self):
@@ -72,16 +81,6 @@ class CheckIn(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
 
-
-# def generate_report(modeladmin, request, queryset):
-#     qs = list(queryset)
-#     serialized_queryset = [q.serialize() for q in qs]
-#     return render(request, "report.html", {"query": json.dumps(serialized_queryset)})
-
-
-# generate_report.short_description = "Generate Selected Report"
-
-
 class ClockSheet(admin.ModelAdmin):
     list_display = (
         "user",
@@ -92,4 +91,3 @@ class ClockSheet(admin.ModelAdmin):
         "timed_out",
     )
     list_filter = ("date_created",)
-    # actions = [generate_report]

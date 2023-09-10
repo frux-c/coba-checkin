@@ -1,14 +1,16 @@
-from .models import CheckIn
-from django.core.mail import EmailMessage
-from django.conf import settings
+import os
 import threading
 from datetime import datetime, timedelta
+
+from django.conf import settings
+from django.core.mail import EmailMessage
+
+from .models import CheckIn
 
 try:
     from pdf import PDF, construct
 except ModuleNotFoundError:
     from .pdf import PDF, construct
-
 
 def time_out_signed():
     """
@@ -68,9 +70,7 @@ def weekly_report():
 
     pdf.output(f"Report.pdf", "F")
     # list of email recepients
-    recepients = [
-        "coba_it_mgmt@utep.edu",
-    ]
+    recepients = os.environ.get("WEEKLY_REPORT_EMAIL_RECEPIENTS").split(",")
     mail = EmailMessage(
         "Weekly Report",  # 	Subject
         f"This report covers days between {startdate.date()} and {enddate.date()}",  # 	Message
