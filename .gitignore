@@ -1,8 +1,8 @@
-*/__pycache__/
+*/__pycache__
 *.pyc
 db.sqlite3
 media/
-coba/migrations/*.py
+coba/migrations
 coba-venv/
 static/
 web.config
