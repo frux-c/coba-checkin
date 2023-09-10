@@ -1,4 +1,4 @@
-# This is a full rundown of how to deploy a Django app on Ubuntu 22.04
+# This is a full rundown of how to deploy a Django app on Ubuntu Server 22.04
 
 ### Current Ubuntu Version
 `bash
@@ -71,6 +71,30 @@ pip install -r requirements.txt
 ```bash
 python manage.py collectstatic
 ```
+### Migrate the database
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+### Create a superuser (optional)
+```bash
+python manage.py createsuperuser
+```
+### Allow the server's IP address to access the project
+- This is only necessary if you want to access the project from the server's `IP address`
+- Open the project's `settings.py` file
+    ```bash
+    nano <path to project>/settings.py
+    ```
+- Add the server's `IP address` to the `ALLOWED_HOSTS` list
+    ```python
+    ALLOWED_HOSTS = [
+        'localhost',
+        '<server IP address>',
+    ]
+    ```
+- Save the file and exit
+- We will later need to add the domain name to the `ALLOWED_HOSTS` list if we want to access the project from the domain name
 
 ## Setting up apache2 and mod_wsgi
 
@@ -189,6 +213,10 @@ python manage.py collectstatic
     sudo chmod -R <permissions> /path/to/project
     sudo chmod -R <permissions> /path/to/virtual/environment
     ```
+- If you are using the local sqlite3 database, you need to change the permissions of the database file
+    ```bash
+    sudo chmod -R <permissions> /path/to/database/file/sqlite3.db
+    ```
 
 ## Enable the config file
 - We need to enable the config file so that apache2 can use it
@@ -208,4 +236,49 @@ python manage.py collectstatic
 - If apache2 is unable to serve the project, check the apache2 error log
     ```bash
     sudo tail -f /var/log/apache2/error.log
+    ```
+## Setting up the domain name
+- We need to set up the domain name so that we can access the project from the domain name
+- First, we need to accuire a domain name. This can be done from a domain name registrar like [Namecheap](https://www.namecheap.com/), [GoDaddy](https://www.godaddy.com/), or [Google Domains](https://domains.google/) (there are many more)
+- Next, we need to point the domain name to the server's `IP address`
+
+### Pointing the domain name to an internal IP address
+
+- ### This is what I did for my project
+    > - If the server is on the same network, we can point the domain using CNAMES
+    > - **IMPORTANT** CNAMES are aliases for domain names, which means that our network has to be able to resolve the domain name to the server's `IP address` or else it will **NOT** work
+    > - First, we need to create a CNAME record for the domain name
+    > - Next, we need to point the CNAME record to the servers `internal domain name (hostname)`
+    > - Next allow the external domain name to access the project
+    > - Open the project's `settings.py` file
+    >     ```bash
+    >     nano <path to project>/settings.py
+    >     ```
+    > - Add the domain name to the `ALLOWED_HOSTS` list
+    >     ```python
+    >     ALLOWED_HOSTS = [
+    >         'localhost',
+    >         '<server IP address>',
+    >         '<domain name>',
+    >     ]
+    >     ```
+    > - Save the file and exit
+    > - We should now be able to access the project from the domain name `http://<domain name>`
+- If you are unable to access the project from the domain name, check the apache2 error log
+- If you dont have a way to resolve the internal domain name, you can add it to your machines `hosts` file for `linux and mac`
+    ```bash
+    sudo nano /etc/hosts
+    ```
+- For `windows`, you can add it to the `hosts` file located at `C:\Windows\System32\drivers\etc\hosts`
+
+    
+    
+
+## Some useful roadblocks and solutions
+### If apache seems to constantly be loading the page
+- I had this issue when I was setting up the project where apache2 would just constantly load the page. And after first load it would not even load on second refresh
+- I found out that the wsgi application group was not setting up properly
+- I fixed this by adding/changing the `WSGIProcessGroup` line in the config file to:
+    ```conf
+    WSGIApplicationGroup %{GLOBAL}
     ```
