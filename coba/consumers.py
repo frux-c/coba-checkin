@@ -37,7 +37,8 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 		)
 
 	async def send_group_message(self,res):
-		del res['type']
+		if 'type' in res:
+			del res['type']
 		await self.send(text_data=json.dumps(res)) # send message to websocket
 
 	async def send_keep_alive(self):
