@@ -3,8 +3,6 @@ from django.db import models
 from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
-from django.contrib.auth.hashers import make_password
-
     
 # Create your models here.
 class Device(models.Model):
@@ -29,11 +27,6 @@ class Card(models.Model):
     )
     card_number = models.CharField(max_length=10, verbose_name="Card Number")
     hint = models.CharField(max_length=50, verbose_name="Hint", null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.card_number:
-            self.card_number = make_password(self.card_number)
-        super(Card, self).save(*args, **kwargs)
 
     def __str__(self):
         if self.hint is None:
