@@ -32,7 +32,8 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 	async def receive(self,text_data): # called when the client sends message
 		print(
 			f"User: {self.scope['user']}",
-			f"CheckInConsumer:receive: {text_data}"
+			f"CheckInConsumer:receive: {text_data}",
+			sep="\n"
 		)
 
 	async def send_group_message(self,res):
@@ -41,7 +42,7 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 
 	async def send_keep_alive(self):
 		while True:
-			await asyncio.sleep(30)
+			await asyncio.sleep(10)
 			await self.send(text_data=json.dumps({'message':'keep_alive', 'type':'keep_alive'}))
 		
 	def __str__(self):
