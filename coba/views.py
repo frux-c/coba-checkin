@@ -43,9 +43,6 @@ class CheckInsAPI(viewsets.ModelViewSet):
     permission_classes = [permissions.BasePermission]
     http_method_names = ["get", "post"]
 
-    def get_queryset(self):
-        return CheckIn.objects.filter(creation_date=datetime.now())
-
     # handle get request
     def list(self, request, *args, **kwargs):
         # handle the request object
@@ -75,7 +72,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
         checkin_type = payload.get("type")
         employee = None
         if checkin_type == "form":
-            full_name = payload.get("employee_name").split(" ")
+            full_name = payload.get("employee_name").split(" ", 1)
             fname = full_name[0]
             lname = full_name[-1]
             employee_id = payload.get("employee_id")
@@ -85,7 +82,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
                 employee = Employee.objects.get(first_name=fname, last_name=lname, employee_id=employee_id)
             else:
                 return JsonResponse({"message": "No matching user found"}, status=404)
-        if checkin_type == "nfc":
+        elif checkin_type == "nfc":
             faculty_code = payload.get("faculty_code")
             card_number = payload.get("card_number")
             if Employee.objects.filter(
@@ -157,10 +154,7 @@ class EmployeesAPI(viewsets.ModelViewSet):
     renderer_classes = [renderers.JSONRenderer]
     http_method_names = ["get"]
     serializer_class = EmployeeSerializer
-    queryset = Employee.objects.all()
-
-    def get_queryset(self):
-        return Employee.objects.all()
+    queryset = Employee.objects
 
     # handle get request
     def list(self, request, *args, **kwargs):
@@ -170,12 +164,18 @@ class EmployeesAPI(viewsets.ModelViewSet):
         return JsonResponse({"employees": response.data})
 
 class TemplateErrorMiddleware:
+    """
+    TemplateErrorMiddleware : Middleware for handling template errors
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)  # get response from the request
         status_code = response.status_code
-        if status_code >= 404: 
+        # check for all bad status codes
+        client_error_codes = {400, 401, 403, 404, 405, 408, 409, 410, 413, 414, 429}
+        server_error_codes = {500, 501, 502, 503, 504, 505, 507, 508, 509, 510, 511}
+        if status_code in client_error_codes or status_code in server_error_codes:
             return render(request, "error_middleware_handler.html", {"status_code": response.status_code})
         return response
