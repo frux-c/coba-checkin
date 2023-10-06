@@ -10,13 +10,13 @@ django.setup()
 class CheckInConsumer(AsyncJsonWebsocketConsumer):
 	GROUP_NAME = 'events'
 	async def connect(self): # called when the websocket is handshaking as part of initial connection
-		# accept the connection
-		await self.accept()
 		# add user to group
 		await self.channel_layer.group_add(
 			self.GROUP_NAME,
 			self.channel_name
 		)
+		# accept the connection
+		await self.accept()
 		# start keep alive task
 		self.keep_alive_task = asyncio.ensure_future(self.send_keep_alive())
 
@@ -28,8 +28,11 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 		)
 		# cancel keep alive task
 		self.keep_alive_task.cancel()
+		# close websocket
+		await self.close(close_code)
 
 	async def receive(self,text_data): # called when the client sends message
+		# do nothing
 		print(
 			f"User: {self.scope['user']}",
 			f"CheckInConsumer:receive: {text_data}",
@@ -37,8 +40,7 @@ class CheckInConsumer(AsyncJsonWebsocketConsumer):
 		)
 
 	async def send_group_message(self,res):
-		if 'type' in res:
-			del res['type']
+		# send message to group
 		await self.send(text_data=json.dumps(res)) # send message to websocket
 
 	async def send_keep_alive(self):
