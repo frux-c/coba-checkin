@@ -132,11 +132,11 @@ ASGI_APPLICATION = "CheckSystem.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
         # option if want to use redis
-        # 'BACKEND' : "channels_redis.core.RedisChannelLayer",
-        # 'CONFIG' : {
-        #     'hosts' : [('127.0.0.1',6379)]
-        # },
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        'BACKEND' : "channels_redis.core.RedisChannelLayer",
+        'CONFIG' : {
+             'hosts' : [('127.0.0.1',6379)]
+        },
+        # "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 # Database
@@ -144,8 +144,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "ENGINE": "django.db.backends.postgresql",
+	"NAME": os.environ.get("DB_NAME"),
+	"USER": os.environ.get("DB_USER"),
+	"PASSWORD": os.environ.get("DB_PASSWORD"),
+	"HOST": os.environ.get("DB_HOST"),
+	"PORT": os.environ.get("DB_PORT"),
     }
 }
 

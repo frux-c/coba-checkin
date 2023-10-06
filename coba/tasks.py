@@ -67,8 +67,8 @@ def weekly_report():
 
     for elem in populated_folder:
         pdf.print_page(elem)
-
-    pdf.output(f"Report.pdf", "F")
+    report_file_name = "WeeklyReport.pdf"
+    pdf.output(report_file_name, "F")
     # list of email recepients
     recepients = os.environ.get("WEEKLY_REPORT_EMAIL_RECEPIENTS").split(",")
     mail = EmailMessage(
@@ -77,7 +77,7 @@ def weekly_report():
         settings.EMAIL_HOST_USER,  # From
         recepients,  # To
     )
-    mail.attach_file(f"Weekly_Report.pdf")
+    mail.attach_file(report_file_name)
     mail.send()
 
 
