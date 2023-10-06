@@ -38,11 +38,13 @@ class CheckInsAPI(viewsets.ModelViewSet):
     CheckInViewSet : Rest API for CheckIn Model
 
     """
-
-    queryset = CheckIn.objects.all()
+    queryset = CheckIn.objects.filter(creation_date=datetime.now())
     serializer_class = CheckInSerializer
     permission_classes = [permissions.BasePermission]
     http_method_names = ["get", "post"]
+
+    def get_queryset(self):
+        return CheckIn.objects.filter(creation_date=datetime.now())
 
     # handle get request
     def list(self, request, *args, **kwargs):
@@ -154,11 +156,15 @@ class EmployeesAPI(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     renderer_classes = [renderers.JSONRenderer]
     http_method_names = ["get"]
-    queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    queryset = Employee.objects.all()
+
+    def get_queryset(self):
+        return Employee.objects.all()
 
     # handle get request
     def list(self, request, *args, **kwargs):
+        # refresh the queryset
         response = EmployeeSerializer(data=self.queryset, many=True)
         response.is_valid()
         return JsonResponse({"employees": response.data})
