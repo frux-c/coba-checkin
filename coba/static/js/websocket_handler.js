@@ -18,7 +18,7 @@ socket.onmessage = (message) => {
     if(payload.event === "websocket.checkin" || payload.event === "websocket.checkout"){
         // update logs for current session
         event_log = document.createElement("li");
-        event_log.innerHTML = "<span>" + (new Date()).toLocaleTimeString() + "</span><span>" + payload.message + "</span>";
+        event_log.innerHTML = "<span class=\"timestamp\">" + (new Date()).toLocaleTimeString() + "</span><span>" + payload.message + "</span>";
         // check if there are already 7 logs
         console.log(event_log_list.childNodes.length );
         if(event_log_list.childNodes.length >= 7){
