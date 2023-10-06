@@ -1,18 +1,11 @@
+from typing import Any
 from django.db import models
 from django.contrib import admin
+from django.db.models import Model
 from simple_history.models import HistoricalRecords
-from hashlib import sha256
+from django.contrib.auth.hashers import make_password
 
-class SHA256HashedCharField(models.CharField):
-    def __init__(self, *args, **kwargs):
-        kwargs["max_length"] = 128
-        super(SHA256HashedCharField, self).__init__(*args, **kwargs)
-
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-        return sha256(str(value).encode("utf-8")).hexdigest()
-
+    
 # Create your models here.
 class Device(models.Model):
     name = models.CharField(max_length=50)
@@ -34,8 +27,14 @@ class Card(models.Model):
     faculty = models.ForeignKey(
         Faculty, on_delete=models.PROTECT, verbose_name="Faculty"
     )
-    card_number = SHA256HashedCharField(verbose_name="Card Number")
+    card_number = models.CharField(max_length=10, verbose_name="Card Number")
     hint = models.CharField(max_length=50, verbose_name="Hint", null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.card_number:
+            self.card_number = make_password(self.card_number)
+        super(Card, self).save(*args, **kwargs)
+
     def __str__(self):
         if self.hint is None:
             return f"{self.faculty.name} (FC:{self.faculty.code}) - {self.card_number}"
@@ -44,17 +43,17 @@ class Card(models.Model):
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    employee_id = SHA256HashedCharField(verbose_name="ID", null=True, blank=True, help_text="Employee ID")
+    employee_id = models.CharField(max_length=10, verbose_name="ID", null=True, blank=True, help_text="Employee ID")
     card = models.ForeignKey(Card, on_delete=models.CASCADE, verbose_name="Card", null=True, blank=True)
     email = models.EmailField(unique=True, null=True, blank=True, verbose_name="Email")
 
     @classmethod
     def get_default_employee_pk(cls):
         employee, created = cls.objects.get_or_create(
-            first_name="Unknown", last_name="Employee", employee_id="00000000"
+            first_name="Default", last_name="Employee", employee_id="00000000"
         )
         return employee.pk
-
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
