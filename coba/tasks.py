@@ -52,7 +52,7 @@ def weekly_report():
 
     # filter out students in date range of 6 days from now
     students = CheckIn.objects.filter(
-        date_created__range=[startdate, enddate], is_on_clock=False, timed_out=False
+        creation_date__range=[startdate, enddate], is_on_clock=False, timed_out=False
     )
 
     # serialize query "Look in models.py for more serialize detail"
@@ -64,11 +64,11 @@ def weekly_report():
     populated_folder = construct(serealized_students)
 
     pdf = PDF(startdate.date(), enddate.date())
-
+    pdf_file_name = "Weekly_Report.pdf"
     for elem in populated_folder:
         pdf.print_page(elem)
 
-    pdf.output(f"Report.pdf", "F")
+    pdf.output(pdf_file_name, "F")
     # list of email recepients
     recepients = os.environ.get("WEEKLY_REPORT_EMAIL_RECEPIENTS").split(",")
     mail = EmailMessage(
@@ -77,7 +77,7 @@ def weekly_report():
         settings.EMAIL_HOST_USER,  # From
         recepients,  # To
     )
-    mail.attach_file(f"Weekly_Report.pdf")
+    mail.attach_file(pdf_file_name)
     mail.send()
 
 
