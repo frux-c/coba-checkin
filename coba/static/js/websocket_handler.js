@@ -10,7 +10,10 @@ const employees_list = document.getElementById("employees-list");
 // display message when connected
 socket.onopen = () => {
     console.log("Connected to websocket");
-    socket.send("Hello from client");
+    socket.send({
+        "type": "websocket.connect",
+        "message": "Connected to websocket"
+    });
 };
 
 socket.onmessage = (message) => {
@@ -18,9 +21,8 @@ socket.onmessage = (message) => {
     if(payload.event === "websocket.checkin" || payload.event === "websocket.checkout"){
         // update logs for current session
         event_log = document.createElement("li");
-        event_log.innerHTML = "<span>" + (new Date()).toLocaleTimeString() + "</span><span>" + payload.message + "</span>";
+        event_log.innerHTML = "<span class=\"timestamp\">" + (new Date()).toLocaleTimeString() + "</span><span>" + payload.message + "</span>";
         // check if there are already 7 logs
-        console.log(event_log_list.childNodes.length );
         if(event_log_list.childNodes.length >= 7){
             event_log_list.removeChild(event_log_list.lastChild);
         }

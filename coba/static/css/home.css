@@ -269,6 +269,11 @@ input:focus {
 	display: none;
 }
 
+.timestamp{
+	font-size: 1rem;
+	text-wrap: nowrap;
+}
+
 .wave {
 	animation-name: wave-animation;
 	/* Refers to the name of your @keyframes element below */
