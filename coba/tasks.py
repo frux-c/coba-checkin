@@ -12,7 +12,11 @@ try:
 except ModuleNotFoundError:
     from .pdf import PDF, construct
 
-def time_out_signed():
+def test_task(*args, **kwargs):
+    print("Hello World!")
+    return "test complete"
+
+def time_out_signed(*args, **kwargs):
     """
     sign out anyone after 6:40pm, from the checkin database/model
     """
@@ -43,7 +47,6 @@ def time_out_signed():
 #         for student in students
 #     )
 #     send_mass_mail(messages, fail_silently=False)
-
 
 def weekly_report():
     # dateback 6 days since this function call
