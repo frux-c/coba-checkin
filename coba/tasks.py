@@ -6,6 +6,9 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 
 from .models import CheckIn
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from .consumers import CheckInConsumer
 
 try:
     from pdf import PDF, construct
@@ -18,7 +21,7 @@ def test_task(*args, **kwargs):
 
 def time_out_signed(*args, **kwargs):
     """
-    sign out anyone after 6:40pm, from the checkin database/model
+    sign out anyone after 6:10pm, from the checkin database
     """
     default_time_out = datetime.now()
     timed_out_students = CheckIn.objects.filter(is_on_clock=True)
@@ -29,6 +32,15 @@ def time_out_signed(*args, **kwargs):
         student.timed_out = True
         student.save()
         names.append(str(student))
+    channel = get_channel_layer()
+    async_to_sync(channel.group_send)(
+        CheckInConsumer.GROUP_NAME,
+            {
+                "type": "send_group_message",
+                "message": [],
+                "event": "websocket.update_employees",
+            },
+    )
     return str(list())
 
 
