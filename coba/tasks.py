@@ -43,24 +43,10 @@ def time_out_signed(*args, **kwargs):
     )
     return str(list())
 
-
-# def notify_timed_out(students: list) -> None:
-#     subject = "Auto Signed Out"
-#     message = """Hi {},
-# 	This is a message to notify you that you have been automatically signed out of COBA check-in system.
-# 	"""
-#     messages = tuple(
-#         (
-#             subject,
-#             message.format(student.first_name),
-#             settings.EMAIL_HOST_USER,
-#             [student.email],
-#         )
-#         for student in students
-#     )
-#     send_mass_mail(messages, fail_silently=False)
-
 def weekly_report():
+    # path to pdf file
+    pdf_file_path = os.path.join(settings.BASE_DIR, "WeeklyReport.pdf")
+
     # dateback 6 days since this function call
     enddate = datetime.today()
     startdate = enddate - timedelta(days=4)
@@ -79,25 +65,48 @@ def weekly_report():
     populated_folder = construct(serealized_students)
 
     pdf = PDF(startdate.date(), enddate.date())
-    pdf_file_name = "Weekly_Report.pdf"
     for elem in populated_folder:
         pdf.print_page(elem)
 
-    pdf.output(pdf_file_name, "F")
+    pdf.output(pdf_file_path, "F")
+
+    # print pdf to local printer
+    # specify the printer name in settings.py
+    # for example:
+    #   settings.py
+    #   LP_PRINTER_DESTINATION = "HP_LaserJet_400_M401dn"
+    os.system(f"lp -d {settings.LP_PRINTER_DESTINATION} {pdf_file_path}")
 
     # list of email recepients
     recepients = os.environ.get("WEEKLY_REPORT_EMAIL_RECEPIENTS").split(",")
+
+    # send email
     mail = EmailMessage(
         "Weekly Report",  # 	Subject
         f"This report covers days between {startdate.date()} and {enddate.date()}",  # 	Message
         settings.EMAIL_HOST_USER,  # From
         recepients,  # To
     )
-    mail.attach_file(pdf_file_name)
+    mail.attach_file(pdf_file_path)
     mail.send()
 
+# def notify_timed_out(students: list) -> None:
+#     subject = "Auto Signed Out"
+#     message = """Hi {},
+# 	This is a message to notify you that you have been automatically signed out of COBA check-in system.
+# 	"""
+#     messages = tuple(
+#         (
+#             subject,
+#             message.format(student.first_name),
+#             settings.EMAIL_HOST_USER,
+#             [student.email],
+#         )
+#         for student in students
+#     )
+#     send_mass_mail(messages, fail_silently=False)
 
 def run_weekly_report():
     mail_thread = threading.Thread(target=weekly_report, daemon=True)
     mail_thread.start()
-    return 200
+    return 0
