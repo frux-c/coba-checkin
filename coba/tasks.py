@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 
 from .models import CheckIn
+from .serializers import CheckInSerializer
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .consumers import CheckInConsumer
@@ -48,23 +49,21 @@ def weekly_report():
     pdf_file_path = os.path.join(settings.BASE_DIR, "WeeklyReport.pdf")
 
     # dateback 6 days since this function call
-    enddate = datetime.today()
-    startdate = enddate - timedelta(days=4)
+    end_date = datetime.today()
+    start_date = end_date - timedelta(days=4)
 
     # filter out students in date range of 6 days from now
-    students = CheckIn.objects.filter(
-        creation_date__range=[startdate, enddate], is_on_clock=False, timed_out=False
+    employees = CheckIn.objects.filter(
+        creation_date__range=[start_date, end_date], is_on_clock=False, timed_out=False
     )
 
     # serialize query "Look in models.py for more serialize detail"
-    serealized_students = []
-    for student in students:
-        serealized_students.append(student.serialize())
+    serealized_employees = CheckInSerializer(employees, many=True).data
 
     # create the plots in a local folder to later on be applied on pdf page
-    populated_folder = construct(serealized_students)
+    populated_folder = construct(serealized_employees)
 
-    pdf = PDF(startdate.date(), enddate.date())
+    pdf = PDF(start_date.date(), end_date.date())
     for elem in populated_folder:
         pdf.print_page(elem)
 
@@ -83,7 +82,7 @@ def weekly_report():
     # send email
     mail = EmailMessage(
         "Weekly Report",  # 	Subject
-        f"This report covers days between {startdate.date()} and {enddate.date()}",  # 	Message
+        f"This report covers days between {start_date.date()} and {end_date.date()}",  # 	Message
         settings.EMAIL_HOST_USER,  # From
         recepients,  # To
     )

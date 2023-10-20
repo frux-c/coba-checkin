@@ -64,16 +64,6 @@ class CheckIn(models.Model):
     timed_out = models.BooleanField(default=False, verbose_name="Auto-Timed Out")
     history = HistoricalRecords()
 
-    def serialize(self):
-        rtn = {}
-        rtn["name"] = str(self.employee)
-        rtn["creation_date"] = str(self.creation_date)
-        rtn["time_in"] = str(self.auto_time_in)
-        rtn["time_out"] = "-"
-        if self.auto_time_out:
-            rtn["time_out"] = str(self.auto_time_out)
-        return rtn
-
     def __str__(self):
         return f"{self.employee.first_name} {self.employee.last_name}"
 
