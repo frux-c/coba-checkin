@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import EmailMessage
+from channels.layers import get_channel_layer  # channel websocket import
+from asgiref.sync import async_to_sync  # channel websocket import
 
 from .models import CheckIn
 from .serializers import CheckInSerializer
@@ -26,12 +28,22 @@ def time_out_signed(*args, **kwargs):
     """
     default_time_out = datetime.now()
     timed_out_students = CheckIn.objects.filter(is_on_clock=True)
+    channel_layer = get_channel_layer()
     names = list()
     for student in timed_out_students:
         student.auto_time_out = default_time_out
         student.is_on_clock = False
         student.timed_out = True
         student.save()
+        # send message to websocket
+        async_to_sync(channel_layer.group_send)(
+            "events",
+            {
+                "type": "send_group_message",
+                "message": f"{student.first_name} {student.last_name} has been signed out automatically",
+                "type": "auto_time_out",
+            },
+        )
         names.append(str(student))
     channel = get_channel_layer()
     async_to_sync(channel.group_send)(

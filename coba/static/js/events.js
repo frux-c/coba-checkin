@@ -123,7 +123,7 @@ function submitForm() {
 		cors: "cors",
 		body: JSON.stringify({
 			employee_name: sname_input.value,
-			employee_id: sid_input.value,
+			employee_id: parseInt(sid_input.value),
 			type: "form",
 		}),
 		headers: {
