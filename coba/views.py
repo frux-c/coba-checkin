@@ -70,12 +70,11 @@ class CheckInsAPI(viewsets.ModelViewSet):
         except json.JSONDecodeError:
             payload = request.POST.dict()
         checkin_type = payload.get("type")
-        employee = None
         if checkin_type == "form":
             full_name = payload.get("employee_name").split(" ", 1)
             fname = full_name[0]
             lname = full_name[-1]
-            employee_id = payload.get("employee_id")
+            employee_id = int(payload.get("employee_id"))
             if Employee.objects.filter(
                 first_name=fname, last_name=lname, employee_id=employee_id
             ).exists():
@@ -84,7 +83,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
                 return JsonResponse({"message": "No matching user found"}, status=404)
         elif checkin_type == "nfc":
             faculty_code = payload.get("faculty_code")
-            card_number = payload.get("card_number")
+            card_number = int(payload.get("card_number"))
             if Employee.objects.filter(
                 card__faculty__code=faculty_code, card__card_number=card_number
             ).exists():
@@ -98,11 +97,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
         time_stamp = datetime.now()
         if existing_checkin:
             # checkout the employee
-            existing_checkin.is_on_clock = False
-            existing_checkin.auto_time_out = time_stamp
-            # TODO : add image proof later
-            existing_checkin.image_proof = None
-            existing_checkin.save()
+            existing_checkin.update(is_on_clock=False, auto_time_out=time_stamp, image_proof=None)
             # announce the employee has been checked out
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -115,10 +110,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
             )
         else:
             # checkin the employee
-            checkin = CheckIn.objects.create(employee=employee)
-            checkin.is_on_clock = True
-            checkin.auto_time_in = time_stamp
-            checkin.save()
+            checkin = CheckIn.objects.create(employee=employee, is_on_clock=True, auto_time_in=time_stamp)
             # announce the employee has been checked in
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
