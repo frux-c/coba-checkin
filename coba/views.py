@@ -97,7 +97,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
         time_stamp = datetime.now()
         if existing_checkin:
             # checkout the employee
-            existing_checkin.update(is_on_clock=False, auto_time_out=time_stamp, image_proof=None)
+            CheckIn.objects.filter(id=existing_checkin.id).update(is_on_clock=False, auto_time_out=time_stamp)
             # announce the employee has been checked out
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -110,7 +110,7 @@ class CheckInsAPI(viewsets.ModelViewSet):
             )
         else:
             # checkin the employee
-            checkin = CheckIn.objects.create(employee=employee, is_on_clock=True, auto_time_in=time_stamp)
+            CheckIn.objects.create(employee=employee, is_on_clock=True, auto_time_in=time_stamp)
             # announce the employee has been checked in
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
