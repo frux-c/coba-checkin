@@ -16,7 +16,7 @@ class Device(models.Model):
 
 class Faculty(models.Model):
     name = models.CharField(max_length=50)
-    code = models.IntegerField(max_length=10, unique=True)
+    code = models.IntegerField(unique=True)
 
     def __str__(self):
         return f"{self.name} (FC:{self.code})"
@@ -25,7 +25,7 @@ class Card(models.Model):
     faculty = models.ForeignKey(
         Faculty, on_delete=models.PROTECT, verbose_name="Faculty"
     )
-    card_number = models.IntegerField(max_length=10, verbose_name="Card Number")
+    card_number = models.IntegerField(verbose_name="Card Number")
     hint = models.CharField(max_length=50, verbose_name="Hint", null=True, blank=True)
 
     def __str__(self):

@@ -99,7 +99,7 @@ def generate_table(data, filename: str):
             except:
                 continue
     plt.subplots_adjust(left=0.2, bottom=0.2)
-    plt.suptitle("Employee(s) Hours per Day", fontsize=12, ha="center", y=0.75)
+    plt.suptitle("Employee(s) Hours per Day", fontsize=12, ha="center", y=0.9)
     table = ax.table(
         cellText=plot_data,
         # cellText = [[data[employee][date] for date in data[employee]] for employee in data],
