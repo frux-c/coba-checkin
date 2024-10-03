@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
-from .tasks import create_report_in_time_window
+from .utils import create_report_in_time_window
 import datetime
     
 # Create your models here.
@@ -90,7 +90,7 @@ class Report(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             self.file.save(name="WeeklyReport.pdf", 
-                           content=create_report_in_time_window(start_time=self.start_time, end_time=self.end_time),
+                           content=create_report_in_time_window(start_time=self.start_time, end_time=self.end_time).output(),
                            save=True)
         super().save(*args, **kwargs)
 

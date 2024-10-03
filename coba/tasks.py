@@ -8,15 +8,9 @@ from channels.layers import get_channel_layer  # channel websocket import
 from asgiref.sync import async_to_sync  # channel websocket import
 
 from .models import CheckIn
-from .serializers import CheckInSerializer
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from .consumers import CheckInConsumer
 
-try:
-    from pdf import PDF, construct
-except ModuleNotFoundError:
-    from .pdf import PDF, construct
+from .utils import create_report_in_time_window
 
 def test_task(*args, **kwargs):
     print("Hello World!")
@@ -56,25 +50,6 @@ def time_out_signed(*args, **kwargs):
     )
     return str(list())
 
-def create_report_in_time_window(*args, **kwargs):
-    """
-    create a report of all students who have checked in between the start and end time
-    :param start_time: start time of the time window
-    :param end_time: end time of the time window
-    """
-    start_time = kwargs.get("start_time")
-    end_time = kwargs.get("end_time")
-    employees = CheckIn.objects.filter(
-        creation_date__range=[start_time, end_time], is_on_clock=False, timed_out=False
-    )
-    serealized_employees = CheckInSerializer(employees, many=True).data
-    populated_folder = construct(serealized_employees)
-    pdf = PDF(start_time, end_time)
-    for elem in populated_folder:
-        pdf.print_page(elem)
-    return pdf.output()
-
-
 def weekly_report():
     # path to pdf file
     pdf_file_path = os.path.join(settings.BASE_DIR, "WeeklyReport.pdf")
@@ -83,28 +58,11 @@ def weekly_report():
     end_date = datetime.today()
     start_date = end_date - timedelta(days=4)
 
-    # filter out students in date range of 6 days from now
-    employees = CheckIn.objects.filter(
-        creation_date__range=[start_date, end_date], is_on_clock=False, timed_out=False
-    )
-
-    # serialize query "Look in models.py for more serialize detail"
-    serealized_employees = CheckInSerializer(employees, many=True).data
-
-    # create the plots in a local folder to later on be applied on pdf page
-    populated_folder = construct(serealized_employees)
-
-    pdf = PDF(start_date.date(), end_date.date())
-    for elem in populated_folder:
-        pdf.print_page(elem)
-
-    pdf.output(pdf_file_path, "F")
-
-    # print pdf to local printer
-    # specify the printer name in settings.py
-    # for example:
-    #   settings.py
-    #   LP_PRINTER_DESTINATION = "HP_LaserJet_400_M401dn"
+    # create the report
+    pdf = create_report_in_time_window(start_time=start_date, end_time=end_date)
+    pdf.output(pdf_file_path)
+    
+    # print the file 
     # os.system(f"lp -d {settings.LP_PRINTER_DESTINATION} {pdf_file_path}")
 
     # list of email recepients
