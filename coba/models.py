@@ -89,13 +89,21 @@ class Report(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            self.file.save(name="WeeklyReport.pdf", 
-                           content=create_report_in_time_window(
-                               start_time=self.start_time, 
-                               end_time=self.end_time, 
-                               employees=None if not self.employees else self.employees).output(),
-                           save=True)
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)  # Save the report to generate an ID
+            self.file.save(
+                name="WeeklyReport.pdf",
+                content=create_report_in_time_window(
+                    start_time=self.start_time,
+                    end_time=self.end_time,
+                    employees=None if not self.employees else self.employees.all(),
+                ).output(),
+                save=True,
+            )
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.start_time} - {self.end_time}"
+
+class ReportAdmin(admin.ModelAdmin):
+    readonly_fields = ('file', )
