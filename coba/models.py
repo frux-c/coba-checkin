@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
 from .utils import create_report_in_time_window_for_reports
-from django_q import async_task as q_async_task
+from django_q.tasks import async_task as q_async_task
 import datetime
 
 # Create your models here.
