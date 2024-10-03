@@ -32,7 +32,9 @@ def create_report_in_time_window(*args, **kwargs):
     return pdf
 
 def create_report_in_time_window_for_reports(report_obj, start_time, end_time, employees):
-    result = create_report_in_time_window(start_time=start_time, end_time=end_time, employees=employees)
-    report_obj.file.save(name="WeeklyReport.pdf", content=result.output(), save=True)
+    from io import BytesIO
+    result = create_report_in_time_window(start_time=start_time, end_time=end_time, employees=employees).result()
+    result_content = BytesIO(result.output(dest='S'))
+    report_obj.file.save(name="WeeklyReport.pdf", content=result_content, save=True)
     report_obj.save()
     return True

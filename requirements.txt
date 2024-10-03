@@ -13,7 +13,7 @@ xhtml2pdf
 django-email
 pandas
 numpy
-fpdf
+fpdf2==2.7.9
 pytest-shutil
 matplotlib
 daphne

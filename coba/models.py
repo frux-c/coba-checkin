@@ -96,7 +96,7 @@ class Report(models.Model):
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.start_time} - {self.end_time}"
+        return f"Generated {self.start_time} - {self.end_time}"
 
 class ReportAdmin(admin.ModelAdmin):
     readonly_fields = ('file', )
