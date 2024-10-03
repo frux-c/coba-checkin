@@ -30,3 +30,9 @@ def create_report_in_time_window(*args, **kwargs):
     for elem in populated_folder:
         pdf.print_page(elem)
     return pdf
+
+def create_report_in_time_window_for_reports(report_obj, start_time, end_time, employees):
+    result = create_report_in_time_window(start_time=start_time, end_time=end_time, employees=employees)
+    report_obj.file.save(name="WeeklyReport.pdf", content=result.output(), save=True)
+    report_obj.save()
+    return True

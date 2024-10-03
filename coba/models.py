@@ -3,7 +3,8 @@ from django.db import models
 from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
-from .utils import create_report_in_time_window
+from .utils import create_report_in_time_window_for_reports
+from django_q import async_task as q_async_task
 import datetime
 
 # Create your models here.
@@ -90,15 +91,7 @@ class Report(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             super().save(*args, **kwargs)  # Save the report to generate an ID
-            self.file.save(
-                name="WeeklyReport.pdf",
-                content=create_report_in_time_window(
-                    start_time=self.start_time,
-                    end_time=self.end_time,
-                    employees=None if not self.employees else self.employees.all(),
-                ).output(),
-                save=True,
-            )
+            q_async_task(create_report_in_time_window_for_reports, self, self.start_time, self.end_time, self.employees.all())
         else:
             super().save(*args, **kwargs)
 
