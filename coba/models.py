@@ -5,7 +5,7 @@ from django.db.models import Model
 from simple_history.models import HistoricalRecords
 from .utils import create_report_in_time_window
 import datetime
-    
+
 # Create your models here.
 class Device(models.Model):
     name = models.CharField(max_length=50)
@@ -82,7 +82,7 @@ class ClockSheet(admin.ModelAdmin):
 
 class Report(models.Model):
     start_time = models.DateField(default=(datetime.datetime.now()-datetime.timedelta(days=7)).date())
-    end_time = models.DateField(auto_add_now=True)
+    end_time = models.DateField(default=datetime.datetime.now().date())
     employees = models.ManyToManyField(Employee, verbose_name="Employees", blank=True)
     file = models.FileField(upload_to="reports/", null=True, blank=True)
     history = HistoricalRecords()
