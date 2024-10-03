@@ -12,10 +12,16 @@ def create_report_in_time_window(*args, **kwargs):
     """
     start_time = kwargs.get("start_time")
     end_time = kwargs.get("end_time")
+    employees = kwargs.get("employees")
     # filter out students in date range
-    employees = CheckIn.objects.filter(
-        creation_date__range=[start_time, end_time], is_on_clock=False, timed_out=False
-    )
+    if employees:
+        employees = CheckIn.objects.filter(
+            creation_date__range=[start_time, end_time], is_on_clock=False, timed_out=False, employee__in=employees
+        )
+    else:
+        employees = CheckIn.objects.filter(
+            creation_date__range=[start_time, end_time], is_on_clock=False, timed_out=False
+        )
     # get the serialized data
     serealized_employees = CheckInSerializer(employees, many=True).data
     # create the plots in a local folder to later on be applied on pdf page

@@ -90,7 +90,10 @@ class Report(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             self.file.save(name="WeeklyReport.pdf", 
-                           content=create_report_in_time_window(start_time=self.start_time, end_time=self.end_time).output(),
+                           content=create_report_in_time_window(
+                               start_time=self.start_time, 
+                               end_time=self.end_time, 
+                               employees=None if not self.employees else self.employees).output(),
                            save=True)
         super().save(*args, **kwargs)
 
