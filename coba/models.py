@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, Iterable
 from django.db import models
 from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
+from .tasks import create_report_in_time_window
+import datetime
     
 # Create your models here.
 class Device(models.Model):
@@ -77,3 +79,20 @@ class ClockSheet(admin.ModelAdmin):
         "timed_out",
     )
     list_filter = ("creation_date",)
+
+class Report(models.Model):
+    start_time = models.DateField(default=(datetime.datetime.now()-datetime.timedelta(days=7)).date())
+    end_time = models.DateField(auto_add_now=True)
+    employees = models.ManyToManyField(Employee, verbose_name="Employees", blank=True)
+    file = models.FileField(upload_to="reports/", null=True, blank=True)
+    history = HistoricalRecords()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.file.save(name="WeeklyReport.pdf", 
+                           content=create_report_in_time_window(start_time=self.start_time, end_time=self.end_time),
+                           save=True)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.start_time} - {self.end_time}"

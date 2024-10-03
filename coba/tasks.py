@@ -56,6 +56,25 @@ def time_out_signed(*args, **kwargs):
     )
     return str(list())
 
+def create_report_in_time_window(*args, **kwargs):
+    """
+    create a report of all students who have checked in between the start and end time
+    :param start_time: start time of the time window
+    :param end_time: end time of the time window
+    """
+    start_time = kwargs.get("start_time")
+    end_time = kwargs.get("end_time")
+    employees = CheckIn.objects.filter(
+        creation_date__range=[start_time, end_time], is_on_clock=False, timed_out=False
+    )
+    serealized_employees = CheckInSerializer(employees, many=True).data
+    populated_folder = construct(serealized_employees)
+    pdf = PDF(start_time, end_time)
+    for elem in populated_folder:
+        pdf.print_page(elem)
+    return pdf.output()
+
+
 def weekly_report():
     # path to pdf file
     pdf_file_path = os.path.join(settings.BASE_DIR, "WeeklyReport.pdf")
@@ -86,7 +105,7 @@ def weekly_report():
     # for example:
     #   settings.py
     #   LP_PRINTER_DESTINATION = "HP_LaserJet_400_M401dn"
-    os.system(f"lp -d {settings.LP_PRINTER_DESTINATION} {pdf_file_path}")
+    # os.system(f"lp -d {settings.LP_PRINTER_DESTINATION} {pdf_file_path}")
 
     # list of email recepients
     recepients = os.environ.get("WEEKLY_REPORT_EMAIL_RECEPIENTS").split(",")
