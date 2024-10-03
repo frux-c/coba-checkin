@@ -1,9 +1,12 @@
-from typing import Any
+from typing import Any, Iterable
 from django.db import models
 from django.contrib import admin
 from django.db.models import Model
 from simple_history.models import HistoricalRecords
-    
+from .utils import create_report_in_time_window_for_reports
+from django_q.tasks import async_task as q_async_task
+import datetime
+
 # Create your models here.
 class Device(models.Model):
     name = models.CharField(max_length=50)
@@ -77,3 +80,23 @@ class ClockSheet(admin.ModelAdmin):
         "timed_out",
     )
     list_filter = ("creation_date",)
+
+class Report(models.Model):
+    start_time = models.DateField(default=(datetime.datetime.now()-datetime.timedelta(days=7)).date())
+    end_time = models.DateField(default=datetime.datetime.now().date())
+    employees = models.ManyToManyField(Employee, verbose_name="Employees", blank=True)
+    file = models.FileField(upload_to="reports/", null=True, blank=True)
+    history = HistoricalRecords()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)  # Save the report to generate an ID
+            q_async_task(create_report_in_time_window_for_reports, self, self.start_time, self.end_time, self.employees.all())
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Generated {self.start_time} - {self.end_time}"
+
+class ReportAdmin(admin.ModelAdmin):
+    readonly_fields = ('file', )

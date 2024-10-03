@@ -1,7 +1,6 @@
 from fpdf import FPDF
 import time
 import os
-import pathlib
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import shutil
