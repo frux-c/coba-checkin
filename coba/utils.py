@@ -1,8 +1,5 @@
 def create_report_in_time_window(*args, **kwargs):
-    try:
-        from pdf import PDF, construct
-    except ModuleNotFoundError:
-        from .pdf import PDF, construct
+    from .pdfc import PDF, construct
     from .serializers import CheckInSerializer
     from .models import CheckIn
     """
