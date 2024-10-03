@@ -1,11 +1,10 @@
-try:
-    from pdf import PDF, construct
-except ModuleNotFoundError:
-    from .pdf import PDF, construct
-from .serializers import CheckInSerializer
-from .models import CheckIn
-
 def create_report_in_time_window(*args, **kwargs):
+    try:
+        from pdf import PDF, construct
+    except ModuleNotFoundError:
+        from .pdf import PDF, construct
+    from .serializers import CheckInSerializer
+    from .models import CheckIn
     """
     create a report of all students who have checked in between the start and end time
     :param start_time: start time of the time window
