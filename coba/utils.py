@@ -57,7 +57,8 @@ def create_report_in_time_window_for_reports(report_obj, start_time, end_time, e
         template = Template(f.read())
         context = Context({'data': result})
         rendered_template = template.render(context)
-    # result_content = BytesIO()
-    report_obj.file.save(name="report.html", content=rendered_template.content, save=True)
-    report_obj.save()
+        result_content = BytesIO(rendered_template.encode())
+        report_obj.file.save(name="report.html", content=result_content, save=True)
+        report_obj.save()
+        result_content.close()
     return True
