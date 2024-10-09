@@ -4,8 +4,8 @@ from django.template import Template, Context
 
 def calculate_delta(row):
     if pd.notna(row['auto_time_in']) and pd.notna(row['auto_time_out']):
-        checkin_dt = datetime.datetime.combine(datetime.datetime.today(), row['auto_time_in'])
-        checkout_dt = datetime.datetime.combine(datetime.datetime.today(), row['auto_time_out'])
+        checkin_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.strptime(row['auto_time_in'], "%H:%M:%S").time())
+        checkout_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.strptime(row['auto_time_out'], "%H:%M:%S").time())
         return (checkout_dt - checkin_dt).seconds / 3600  # Convert to hours
     return None
 
