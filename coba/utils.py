@@ -1,7 +1,20 @@
+import pandas as pd
+import datetime
+from django.shortcuts import render_to_response
+
+def calculate_delta(row):
+    if pd.notna(row['checkout_time']):
+        checkin_dt = datetime.datetime.combine(datetime.datetime.today(), row['auto_time_in'])
+        checkout_dt = datetime.datetime.combine(datetime.datetime.today(), row['auto_time_out'])
+        return (checkout_dt - checkin_dt).seconds / 3600  # Convert to hours
+    return None
+
 def create_report_in_time_window(*args, **kwargs):
-    from .pdfc import PDF, construct
+    # from .pdfc import PDF, construct
     from .serializers import CheckInSerializer
     from .models import CheckIn
+    import pandas as pd
+
     """
     create a report of all students who have checked in between the start and end time
     :param start_time: start time of the time window
@@ -21,17 +34,26 @@ def create_report_in_time_window(*args, **kwargs):
         )
     # get the serialized data
     serealized_employees = CheckInSerializer(employees, many=True).data
+    df = pd.DataFrame(serealized_employees)
+    df['checkin_delta'] = df.apply(calculate_delta, axis=1)
+    # group the df by field 'creation_date'
+    
+    grouped_records = df.groupby('creation_date').apply(lambda x: x.to_dict(orient='records')).to_dict()
+        
     # create the plots in a local folder to later on be applied on pdf page
-    populated_folder = construct(serealized_employees)
-    pdf = PDF(start_time, end_time)
-    for elem in populated_folder:
-        pdf.print_page(elem)
-    return pdf
+
+    # populated_folder = construct(serealized_employees)
+    # pdf = PDF(start_time, end_time)
+    # for elem in populated_folder:
+    #     pdf.print_page(elem)
+    
+    # return pdf
+    return grouped_records
 
 def create_report_in_time_window_for_reports(report_obj, start_time, end_time, employees):
     from io import BytesIO
     result = create_report_in_time_window(start_time=start_time, end_time=end_time, employees=employees)
-    result_content = BytesIO(result.output())
-    report_obj.file.save(name="WeeklyReport.pdf", content=result_content, save=True)
+    result_content = BytesIO(render_to_response('checkin_report_template.html', {'data': result}).content)
+    report_obj.file.save(name="report.html", content=result_content, save=True)
     report_obj.save()
     return True
