@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime
-from django.shortcuts import render_to_response
+from django.template import Template, Context
 
 def calculate_delta(row):
     if pd.notna(row['checkout_time']):
@@ -53,7 +53,11 @@ def create_report_in_time_window(*args, **kwargs):
 def create_report_in_time_window_for_reports(report_obj, start_time, end_time, employees):
     from io import BytesIO
     result = create_report_in_time_window(start_time=start_time, end_time=end_time, employees=employees)
-    result_content = BytesIO(render_to_response('checkin_report_template.html', {'data': result}).content)
-    report_obj.file.save(name="report.html", content=result_content, save=True)
+    with open(f"coba/templates/checkin_report_template.html", "r") as f:
+        template = Template(f.read())
+        context = Context({'data': result})
+        rendered_template = template.render(context)
+    # result_content = BytesIO()
+    report_obj.file.save(name="report.html", content=rendered_template.content, save=True)
     report_obj.save()
     return True
