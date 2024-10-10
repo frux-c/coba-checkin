@@ -7,7 +7,7 @@ def calculate_delta(row):
         checkin_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.strptime(row['auto_time_in'], "%H:%M:%S.%f").time())
         checkout_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.strptime(row['auto_time_out'], "%H:%M:%S.%f").time())
         return (checkout_dt - checkin_dt).seconds / 3600  # Convert to hours
-    return None
+    return 0.0
 
 def create_report_in_time_window(*args, **kwargs):
     # from .pdfc import PDF, construct
@@ -36,8 +36,9 @@ def create_report_in_time_window(*args, **kwargs):
     serealized_employees = CheckInSerializer(employees, many=True).data
     df = pd.DataFrame(serealized_employees)
     df['checkin_delta'] = df.apply(calculate_delta, axis=1)
+    # remove rows that have checkin_delta > 8 hours and < 30 minutes
+    df = df[(df['checkin_delta'] > 0.5) & (df['checkin_delta'] < 8)]
     # group the df by field 'creation_date'
-    
     grouped_records = df.groupby('creation_date').apply(lambda x: x.to_dict(orient='records')).to_dict()
         
     # create the plots in a local folder to later on be applied on pdf page

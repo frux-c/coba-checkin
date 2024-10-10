@@ -22,7 +22,7 @@
     
     {% for date, records in data.items %}
         <div class="container">
-        <h2 class="mb-5">{{ date }} ({{ date|str_to_date|date:"l" }})</h2>
+        <h2 class="mb-5">{{ date }} ({{ date | str_to_date | date:"l" }})</h2>
 
         <div class="table-responsive">
 
@@ -49,8 +49,8 @@
                 {% for checkin in records %}
                     <tr>
                         <td>{{ checkin.employee }}</td>
-                        <td>{{ checkin.auto_time_in }}</td>
-                        <td>{{ checkin.auto_time_out }}</td>
+                        <td>{{ checkin.auto_time_in | str_time_to_time | time_to_str_time }}</td>
+                        <td>{{ checkin.auto_time_out | str_time_to_time | time_to_str_time }}</td>
                         <td>{{ checkin.checkin_delta|floatformat:2}}h(s)</td>
                     </tr>
                 {% endfor %}
